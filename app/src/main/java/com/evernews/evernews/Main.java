@@ -595,12 +595,13 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
+        @Override
         public int getItemPosition(Object object) {
             return POSITION_NONE;
         }
@@ -709,121 +710,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
         }
     }
-
-    /*public void parseResults(String response)
-    {
-        ContentValues values = new ContentValues();
-        String path=Initilization.DB_PATH+Initilization.DB_NAME;
-        db= SQLiteDatabase.openDatabase(path, null, 0);
-        String categories[][]=new String[1000][2];
-        for(int i=0;i<100;i++){
-            Initilization.newsCategories[i][0]="";
-            Initilization.newsCategories[i][1]="";
-        }
-        for(int i=0;i<1000;i++){
-            categories[i][0]="";
-            categories[i][1]="";
-        }
-        Initilization.addOnList.clear();
-        Initilization.addOnListTOCompare.clear();
-        Initilization.getAddOnListRSSID.clear();
-        for (int i = 0; i < 20; i++) {
-            Initilization.addOnList.add("");
-            Initilization.addOnListTOCompare.add("");
-            Initilization.getAddOnListRSSID.add("");
-        }
-
-        int index=0;
-        String currentNewsCategory="";
-        Initilization.newsCategories[1][1]="EverYou";
-        Initilization.newsCategories[2][1]="YouView";
-        Initilization.newsCategories[1][0]="999";
-        Initilization.newsCategories[2][0]="999";
-        XMLDOMParser parser = new XMLDOMParser();
-        InputStream stream = new ByteArrayInputStream(response.getBytes());
-        Document doc = parser.getDocument(stream);
-        NodeList nodeList = doc.getElementsByTagName("Table");
-
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Element e = (Element) nodeList.item(i);
-            Initilization.resultArray[i][Initilization.CategoryId] = (parser.getValue(e, "CategoryId"));
-            values.put(Initilization.CATEGORYID, Initilization.resultArray[i][Initilization.CategoryId]);             //lets add data to database
-
-            Initilization.resultArray[i][Initilization.Category] = (parser.getValue(e, "Category"));
-            values.put(Initilization.CATEGORYNAME, Initilization.resultArray[i][Initilization.Category]);
-
-            Initilization.resultArray[i][Initilization.DisplayOrder] = (parser.getValue(e, "DisplayOrder"));
-            values.put(Initilization.DISPLAYORDER, Initilization.resultArray[i][Initilization.DisplayOrder]);
-
-            Initilization.resultArray[i][Initilization.RSSTitle] = (parser.getValue(e, "RSSTitle"));
-            values.put(Initilization.RSSTITLE, Initilization.resultArray[i][Initilization.RSSTitle]);
-
-            Initilization.resultArray[i][Initilization.RSSURL] = (parser.getValue(e, "RSSURL"));
-            values.put(Initilization.RSSURL_DB, Initilization.resultArray[i][Initilization.RSSURL]);
-
-            Initilization.resultArray[i][Initilization.RSSUrlId] = (parser.getValue(e, "RSSUrlId"));
-            values.put(Initilization.RSSURLID, Initilization.resultArray[i][Initilization.RSSUrlId]);
-
-            Initilization.resultArray[i][Initilization.NewsId] = (parser.getValue(e, "NewsId"));
-            values.put(Initilization.NEWSID, Initilization.resultArray[i][Initilization.NewsId]);
-
-            Initilization.resultArray[i][Initilization.NewsTitle] = (parser.getValue(e, "NewsTitle"));
-            values.put(Initilization.NEWSTITLE, Initilization.resultArray[i][Initilization.NewsTitle]);
-
-            Initilization.resultArray[i][Initilization.Summary] = (parser.getValue(e, "Summary"));
-            values.put(Initilization.SUMMARY, Initilization.resultArray[i][Initilization.Summary]);
-
-            Initilization.resultArray[i][Initilization.NewsImage] = (parser.getValue(e, "NewsImage"));
-            values.put(Initilization.NEWSIMAGE, Initilization.resultArray[i][Initilization.NewsImage]);
-
-            Initilization.resultArray[i][Initilization.NewsDate] = (parser.getValue(e, "NewsDate"));
-            values.put(Initilization.NEWSDATE, Initilization.resultArray[i][Initilization.NewsDate]);
-
-            Initilization.resultArray[i][Initilization.NewsDisplayOrder] = (parser.getValue(e, "NewsDisplayOrder"));
-            values.put(Initilization.NEWSDISPLAYORDER, Initilization.resultArray[i][Initilization.NewsDisplayOrder]);
-
-            Initilization.resultArray[i][Initilization.CategoryorNews] = (parser.getValue(e, "CategoryorNews"));
-            values.put(Initilization.CATEGORYORNEWS, Initilization.resultArray[i][Initilization.CategoryorNews]);
-
-            Initilization.resultArray[i][Initilization.FullText] = (parser.getValue(e, "FullText"));
-            values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
-
-            Initilization.resultArray[i][Initilization.NewsUrl] = (parser.getValue(e, "NewsURL"));
-            values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
-
-            currentNewsCategory=Initilization.resultArray[i][Initilization.DisplayOrder];
-            db.insert(Initilization.TABLE_NAME, null, values);
-
-            int cuDispOrder=0;
-            try {
-                cuDispOrder = Integer.parseInt(currentNewsCategory);
-            }catch (Exception ee){}
-            if(cuDispOrder==0){
-            }
-            if(!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder!=0){
-                Initilization.addOnList.add(cuDispOrder,Initilization.resultArray[i][Initilization.Category]);
-                Initilization.getAddOnListRSSID.add(cuDispOrder,Initilization.resultArray[i][Initilization.RSSUrlId]);
-                Initilization.addOnListTOCompare.add(cuDispOrder,Initilization.resultArray[i][Initilization.Category]);
-            }
-            if(!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder== 0){
-                Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
-                Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
-            }
-            Initilization.resultArrayLength=i;
-        }
-
-        db.close(); // Closing database connection
-
-        Initilization.addOnList.add(2, "EverYou");
-        Initilization.addOnList.add(3, "YouView");
-        Initilization.getAddOnListRSSID.add(2,"NULL");
-        Initilization.getAddOnListRSSID.add(3,"NULL");
-        Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
-        Initilization.addOnList.removeAll(Arrays.asList(null, ""));
-        Initilization.addOnListTOCompare.clear();
-    }
-*/
 
     public void parseResults(String response)
     {

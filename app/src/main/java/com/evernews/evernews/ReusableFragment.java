@@ -66,6 +66,7 @@ public class ReusableFragment extends Fragment {
     ShareDialog shareDialog;
     String newsTitle;
     String newsLink;
+    CustomAdapter customAdapter;
     Context context;
     static List<ItemObject> asyncitems = new ArrayList<>();
     Button btn;
@@ -112,7 +113,7 @@ public class ReusableFragment extends Fragment {
             gridView.setNumColumns(2);
         }
         List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
-        CustomAdapter customAdapter = new CustomAdapter(getActivity(), itemCollection);
+        customAdapter = new CustomAdapter(getActivity(), itemCollection);
         itemCollection.addAll(allItems);
         //customAdapter.notifyDataSetChanged();
         int postionToMaintain= gridView.getFirstVisiblePosition();
@@ -284,6 +285,7 @@ public class ReusableFragment extends Fragment {
                         @Override
                         public void onClick(View v) {
                             //Toast.makeText(getContext(),"Loading more news",Toast.LENGTH_LONG).show();
+                            fab.setVisibility(View.GONE);
                             new AsyncTask<Void,Void,String>()
                             {
                                 String content;
@@ -340,13 +342,24 @@ public class ReusableFragment extends Fragment {
                                         //Log.d("response", result);
                                         //after getting the response we have to parse it
                                         parseResults(result);
-                                        for(int i=0;i<asyncitems.size();i++){
+                                        int tabNameI=getArguments().getInt(TYPE_KEY);
+                                        int resultsID=0;
+                                        try{
+                                            String num=asyncitems.get(0).getCategoryID();
+                                            resultsID=Integer.parseInt(num);
+                                        }catch(Exception e){/****/}
+                                        if(tabNameI==resultsID){
+                                            asyncitems.remove(0);
+                                            itemCollection.addAll(asyncitems);
+                                            customAdapter.notifyDataSetChanged();
+                                            Toast.makeText(getContext(),"More news loaded",Toast.LENGTH_LONG).show();
+                                        }
+                                       /* for(int i=0;i<asyncitems.size();i++){
                                             if(getArguments().getString(TAB_NAME).compareTo(itemCollection.get(i).getnewsName())!=0){
                                                asyncitems.remove(i);
                                             }
-                                        }
+                                        }*/
                                         //CustomAdapter customAdapter = new CustomAdapter(getActivity(), itemCollection);
-                                        itemCollection.addAll(asyncitems);
                                         //int postionToMaintain = gridView.getLastVisiblePosition();
                                         //gridView.setAdapter(customAdapter);
                                         //gridView.setSelection(postionToMaintain);
@@ -460,7 +473,7 @@ public class ReusableFragment extends Fragment {
                 /**CAUTION HERE**/
                 itemCollection.addAll(allItems);
                 int postionToMaintain= gridView.getFirstVisiblePosition();
-                CustomAdapter customAdapter = new CustomAdapter(getActivity(), itemCollection);
+                customAdapter = new CustomAdapter(getActivity(), itemCollection);
                 gridView.setAdapter(customAdapter);
                 gridView.setSelection(postionToMaintain);
                 super.onPostExecute(aVoid);
@@ -657,6 +670,7 @@ public class ReusableFragment extends Fragment {
     //Non reuse lol
     public void parseResults(String response)
     {
+        int tabName=getArguments().getInt(TYPE_KEY);
         String NewsImage="",NewsTitle="",RSSTitle="",NewsId="",CategoryId="",FullText="",NewsUrl="";
         ContentValues values = new ContentValues();
         String path=Initilization.DB_PATH+Initilization.DB_NAME;
@@ -667,6 +681,8 @@ public class ReusableFragment extends Fragment {
              tempResults[i][j]="NULL";
             }
         }
+        asyncitems.clear();
+        asyncitems.add(new ItemObject(tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+""));
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
         for(int i=0;i<15;i++)
         {
