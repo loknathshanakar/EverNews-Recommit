@@ -16,12 +16,7 @@ import android.widget.Toast;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,15 +60,10 @@ public class Initilization extends AppCompatActivity {
     public static final String RESERVED_4 = "RESERVED_4";
     public static long numRows=0;
     public static String SQL_CREATE_ENTRIES ="";
-    SQLiteDatabase db;
     public static String DB_PATH = "/data/data/com.evernews.evernews/databases/";
     public static String DB_NAME = TABLE_NAME;
-
-
-
-    private static SharedPreferences sharedpreferences;
     public static String androidId="";
-    public static int timeout=10000;
+    public static int timeout = 30000;
     public static String resultArray[][]=new String[10000][15];
     public static String newsCategories[][]=new String[100][2];
     public static int resultArrayLength=0;
@@ -81,6 +71,9 @@ public class Initilization extends AppCompatActivity {
     public static ArrayList<String> addOnList = new ArrayList <String>(10);
     public static ArrayList<String> addOnListTOCompare = new ArrayList <String>(10);
     public static ArrayList<String> getAddOnListRSSID = new ArrayList <String>(10);
+    private static SharedPreferences sharedpreferences;
+    SQLiteDatabase db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,120 +83,15 @@ public class Initilization extends AppCompatActivity {
         new GetNewsTask().execute();
     }
 
-    class GetNewsTask extends AsyncTask<Void,Integer,Void>
-    {
-        int goCode=0;
-        String content;
-        int ExceptionCode=0;
-        TextView tv=(TextView)findViewById(R.id.response);
-        @Override
-        protected void onPreExecute()
-        {
-            tv.setText("Connecting...");
-            super.onPreExecute();
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... progress){
-            if(progress[0]==0)
-                tv.setText("Downloading news for the first time...please wait");
-            if(progress[0]==1)
-                tv.setText("Formatting news...please wait");
-        }
-        @Override
-        protected Void doInBackground(Void... params)
-        {
-            SQL_CREATE_ENTRIES = "CREATE TABLE  IF NOT EXISTS "+TABLE_NAME+"("
-                    + CATEGORYID + " TEXT , "
-                    + CATEGORYNAME + " TEXT , " + DISPLAYORDER
-                    + " TEXT , " + RSSTITLE + " TEXT , "
-                    + RSSURL_DB + " TEXT , " + RSSURLID
-                    + " TEXT , " + NEWSID + " TEXT UNIQUE, "
-                    + NEWSTITLE + " TEXT , " + SUMMARY
-                    + " TEXT , " + NEWSIMAGE + " TEXT , " + NEWSDATE
-                    + " TEXT , " + NEWSDISPLAYORDER
-                    + " TEXT , " + CATEGORYORNEWS  + " TEXT , " + FULLTEXT
-                    + " TEXT , " + NEWSURL
-                    + " TEXT , " + RESERVED_2  + " TEXT , " + RESERVED_3
-                    + " TEXT , " + RESERVED_4 + " TEXT );";
-
-            db= openOrCreateDatabase(TABLE_NAME, MODE_PRIVATE, null);
-            db.execSQL(SQL_CREATE_ENTRIES);
-            numRows = DatabaseUtils.queryNumEntries(db,TABLE_NAME);
-            if(numRows<50) {
-                try {
-                    publishProgress(0);
-                    androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
-                    String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId=" + androidId;//Over ride but should be Main.androidId
-                    goCode=1;
-                    content = Jsoup.connect(fetchLink).ignoreContentType(true).timeout(timeout+timeout).execute().body();
-                } catch (Exception e) {
-                    if (e instanceof SocketTimeoutException) {
-                        ExceptionCode = 1;
-                        return null;
-                    }
-                    if (e instanceof HttpStatusException) {
-                        ExceptionCode = 2;
-                        return null;
-                    }
-                    e.printStackTrace();
-                }
-            }else{
-                goCode=2;
-            }
-            db.close();
-            publishProgress(1);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid)
-        {
-            if(ExceptionCode>0) {
-                if(ExceptionCode==1)
-                    Toast.makeText(getApplicationContext(),"Please check your internet connection and try again",Toast.LENGTH_SHORT).show();
-                if(ExceptionCode==2)
-                    Toast.makeText(getApplicationContext(),"Some server related issue occurred..please try again later",Toast.LENGTH_SHORT).show();
-                else
-                    Toast.makeText(getApplicationContext(),"Unknown exception,program will now exit",Toast.LENGTH_SHORT).show();
-                finish();
-            }
-                if((content!=null && goCode==1) || (content!=null && sharedpreferences.getBoolean(Main.NEWCHANNELADDED,false)))
-                {
-                    String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;",">").replaceAll("&amp;","&");
-                    //Log.d("response", result);
-                    //after getting the response we have to parse it
-                    parseResults(result);
-                    SharedPreferences.Editor editor = sharedpreferences.edit();
-                    editor.putBoolean(Main.NEWCHANNELADDED, false);
-                    editor.commit();
-                    Intent main=new Intent(Initilization.this,Main.class);
-                    startActivity(main);
-                    finish();
-                }
-                else if(goCode==2){
-                    offlineparseResults();
-                    Intent main=new Intent(Initilization.this,Main.class);
-                    startActivity(main);
-                    finish();
-                }
-                else{
-                    Toast.makeText(getApplicationContext(),"Please check your internet connection and try again",Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-                super.onPostExecute(aVoid);
-            }
-        }
-    public void parseResults(String response)
-    {
-        Initilization.resultArrayLength=0;
+    public void parseResults(String response) {
+        Initilization.resultArrayLength = 0;
         ContentValues values = new ContentValues();
-        String path=Initilization.DB_PATH+Initilization.DB_NAME;
-        db=SQLiteDatabase.openDatabase(path,null,0);
+        String path = Initilization.DB_PATH + Initilization.DB_NAME;
+        db = SQLiteDatabase.openDatabase(path, null, 0);
         /**Clear off resultArray**/
-        for(int i=0;i<10000;i++){
-            for(int j=0;j<15;j++){
-                Initilization.resultArray[i][j]="NULL";
+        for (int i = 0; i < 10000; i++) {
+            for (int j = 0; j < 15; j++) {
+                Initilization.resultArray[i][j] = "NULL";
             }
         }
         /**END**/
@@ -217,139 +105,138 @@ public class Initilization extends AppCompatActivity {
             Initilization.getAddOnListRSSID.add("");
         }
 
-        String currentNewsCategory="";
+        String currentNewsCategory = "";
         /**END**/
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
-        for(int i=0;i<15;i++)
-        {
-            if(i==Initilization.CategoryId) {
-                int index=0;
+        for (int i = 0; i < 15; i++) {
+            if (i == Initilization.CategoryId) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryId")) {
-                    Initilization.resultArray[index][Initilization.CategoryId]=e.text();
+                    Initilization.resultArray[index][Initilization.CategoryId] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.Category) {
-                int index=0;
+            if (i == Initilization.Category) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("Category")) {
-                    Initilization.resultArray[index][Initilization.Category]=e.text();
+                    Initilization.resultArray[index][Initilization.Category] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.DisplayOrder) {
-                int index=0;
+            if (i == Initilization.DisplayOrder) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("DisplayOrder")) {
-                    Initilization.resultArray[index][Initilization.DisplayOrder]=e.text();
+                    Initilization.resultArray[index][Initilization.DisplayOrder] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.RSSTitle) {
-                int index=0;
+            if (i == Initilization.RSSTitle) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSTitle")) {
-                    Initilization.resultArray[index][Initilization.RSSTitle]=e.text();
+                    Initilization.resultArray[index][Initilization.RSSTitle] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.RSSURL) {
-                int index=0;
+            if (i == Initilization.RSSURL) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSURL")) {
-                    Initilization.resultArray[index][Initilization.RSSURL]=e.text();
+                    Initilization.resultArray[index][Initilization.RSSURL] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.RSSUrlId) {
-                int index=0;
+            if (i == Initilization.RSSUrlId) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {
-                    Initilization.resultArray[index][Initilization.RSSUrlId]=e.text();
+                    Initilization.resultArray[index][Initilization.RSSUrlId] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.NewsId ) {
-                int index=0;
+            if (i == Initilization.NewsId) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsId")) {
-                    Initilization.resultArray[index][Initilization.NewsId]=e.text();
+                    Initilization.resultArray[index][Initilization.NewsId] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.NewsTitle ) {
-                int index=0;
+            if (i == Initilization.NewsTitle) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsTitle")) {
-                    Initilization.resultArray[index][Initilization.NewsTitle]=e.text();
+                    Initilization.resultArray[index][Initilization.NewsTitle] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.Summary) {
-                int index=0;
+            if (i == Initilization.Summary) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("Summary")) {
-                    Initilization.resultArray[index][Initilization.Summary]=e.text();
+                    Initilization.resultArray[index][Initilization.Summary] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.NewsImage) {
-                int index=0;
+            if (i == Initilization.NewsImage) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsImage")) {
-                    Initilization.resultArray[index][Initilization.NewsImage]=e.text();
+                    Initilization.resultArray[index][Initilization.NewsImage] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.NewsDate) {
-                int index=0;
+            if (i == Initilization.NewsDate) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDate")) {
-                    Initilization.resultArray[index][Initilization.NewsDate]=e.text();
+                    Initilization.resultArray[index][Initilization.NewsDate] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.NewsDisplayOrder) {
-                int index=0;
+            if (i == Initilization.NewsDisplayOrder) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDisplayOrder")) {
-                    Initilization.resultArray[index][Initilization.NewsDisplayOrder]=e.text();
+                    Initilization.resultArray[index][Initilization.NewsDisplayOrder] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.CategoryorNews) {
-                int index=0;
+            if (i == Initilization.CategoryorNews) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryorNews")) {
-                    Initilization.resultArray[index][Initilization.CategoryorNews]=e.text();
+                    Initilization.resultArray[index][Initilization.CategoryorNews] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.FullText) {
-                int index=0;
+            if (i == Initilization.FullText) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("FullText")) {
-                    Initilization.resultArray[index][Initilization.FullText]=e.text();
+                    Initilization.resultArray[index][Initilization.FullText] = e.text();
                     index++;
                 }
             }
-            if(i==Initilization.NewsUrl) {
-                int index=0;
+            if (i == Initilization.NewsUrl) {
+                int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsUrl")) {
-                    Initilization.resultArray[index][Initilization.NewsUrl]=e.text();
+                    Initilization.resultArray[index][Initilization.NewsUrl] = e.text();
                     index++;
                 }
             }
         }
 
         for (int i = 0; i < 10000; i++) {
-            if(Initilization.resultArray[i][Initilization.CategoryId].contains("NULL")||Initilization.resultArray[i][Initilization.NewsId].contains("NULL")||Initilization.resultArray[i][Initilization.FullText].contains("NULL")){
+            if (Initilization.resultArray[i][Initilization.CategoryId].contains("NULL") || Initilization.resultArray[i][Initilization.NewsId].contains("NULL") || Initilization.resultArray[i][Initilization.FullText].contains("NULL")) {
                 continue;
             }
-            values.put(Initilization.CATEGORYID,Initilization.resultArray[i][Initilization.CategoryId]);
-            values.put(Initilization.CATEGORYNAME,Initilization.resultArray[i][Initilization.Category]);
-            values.put(Initilization.DISPLAYORDER,Initilization.resultArray[i][Initilization.DisplayOrder]);
-            values.put(Initilization.RSSTITLE,Initilization.resultArray[i][Initilization.RSSTitle]);
-            values.put(Initilization.RSSURL_DB,Initilization.resultArray[i][Initilization.RSSURL]);
-            values.put(Initilization.RSSURLID,Initilization.resultArray[i][Initilization.RSSUrlId]);
-            values.put(Initilization.NEWSID,Initilization.resultArray[i][Initilization.NewsId]);
-            values.put(Initilization.NEWSTITLE,Initilization.resultArray[i][Initilization.NewsTitle]);
-            values.put(Initilization.SUMMARY,Initilization.resultArray[i][Initilization.Summary]);
-            values.put(Initilization.NEWSIMAGE,Initilization.resultArray[i][Initilization.NewsImage]);
-            values.put(Initilization.NEWSDATE,Initilization.resultArray[i][Initilization.NewsDate]);
-            values.put(Initilization.NEWSDISPLAYORDER,Initilization.resultArray[i][Initilization.NewsDisplayOrder]);
-            values.put(Initilization.CATEGORYORNEWS,Initilization.resultArray[i][Initilization.CategoryorNews]);
+            values.put(Initilization.CATEGORYID, Initilization.resultArray[i][Initilization.CategoryId]);
+            values.put(Initilization.CATEGORYNAME, Initilization.resultArray[i][Initilization.Category]);
+            values.put(Initilization.DISPLAYORDER, Initilization.resultArray[i][Initilization.DisplayOrder]);
+            values.put(Initilization.RSSTITLE, Initilization.resultArray[i][Initilization.RSSTitle]);
+            values.put(Initilization.RSSURL_DB, Initilization.resultArray[i][Initilization.RSSURL]);
+            values.put(Initilization.RSSURLID, Initilization.resultArray[i][Initilization.RSSUrlId]);
+            values.put(Initilization.NEWSID, Initilization.resultArray[i][Initilization.NewsId]);
+            values.put(Initilization.NEWSTITLE, Initilization.resultArray[i][Initilization.NewsTitle]);
+            values.put(Initilization.SUMMARY, Initilization.resultArray[i][Initilization.Summary]);
+            values.put(Initilization.NEWSIMAGE, Initilization.resultArray[i][Initilization.NewsImage]);
+            values.put(Initilization.NEWSDATE, Initilization.resultArray[i][Initilization.NewsDate]);
+            values.put(Initilization.NEWSDISPLAYORDER, Initilization.resultArray[i][Initilization.NewsDisplayOrder]);
+            values.put(Initilization.CATEGORYORNEWS, Initilization.resultArray[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
-            int cuDispOrder=0;
-            currentNewsCategory=Initilization.resultArray[i][Initilization.DisplayOrder];
+            int cuDispOrder = 0;
+            currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
             db.insert(Initilization.TABLE_NAME, null, values);
             try {
                 Initilization.resultArrayLength++;
@@ -365,8 +252,7 @@ public class Initilization extends AppCompatActivity {
                     Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
                     Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
                 }
-            }
-            catch (Exception ee){/****/}
+            } catch (Exception ee) {/****/}
         }
 
         db.close(); // Closing database connection
@@ -374,29 +260,28 @@ public class Initilization extends AppCompatActivity {
         Initilization.addOnList.add(2, "EverYou");
         Initilization.addOnList.add(3, "YouView");
         Initilization.getAddOnListRSSID.add(2, "NULL");
-        Initilization.getAddOnListRSSID.add(3,"NULL");
+        Initilization.getAddOnListRSSID.add(3, "NULL");
         Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
         Initilization.addOnList.removeAll(Arrays.asList(null, ""));
         Initilization.addOnListTOCompare.clear();
     }
 
-
     public void offlineparseResults()
     {
         /**Keep my house**/
-        Initilization.resultArrayLength=0;
+        Initilization.resultArrayLength = 0;
         /**END**/
         /**Clear off resultArray**/
-        for(int i=0;i<10000;i++){
-            for(int j=0;j<15;j++){
-                Initilization.resultArray[i][j]="NULL";
+        for (int i = 0; i < 10000; i++) {
+            for (int j = 0; j < 15; j++) {
+                Initilization.resultArray[i][j] = "NULL";
             }
         }
         /**END**/
         ContentValues values = new ContentValues();
-        String path=DB_PATH+DB_NAME;
-        db=SQLiteDatabase.openDatabase(path,null,0);
-        String col[] = { CATEGORYID , CATEGORYNAME ,DISPLAYORDER ,RSSTITLE  ,RSSURL_DB,RSSURLID ,NEWSID ,NEWSTITLE ,SUMMARY ,NEWSIMAGE  ,NEWSDATE,NEWSDISPLAYORDER ,CATEGORYORNEWS ,FULLTEXT,NEWSURL };
+        String path = DB_PATH + DB_NAME;
+        db = SQLiteDatabase.openDatabase(path, null, 0);
+        String col[] = {CATEGORYID, CATEGORYNAME, DISPLAYORDER, RSSTITLE, RSSURL_DB, RSSURLID, NEWSID, NEWSTITLE, SUMMARY, NEWSIMAGE, NEWSDATE, NEWSDISPLAYORDER, CATEGORYORNEWS, FULLTEXT, NEWSURL};
         Cursor cur = db.query(TABLE_NAME, col, null, null, null, null, null);
         Integer num = cur.getCount();
         setTitle(Integer.toString(num));
@@ -409,7 +294,7 @@ public class Initilization extends AppCompatActivity {
             Initilization.getAddOnListRSSID.add("");
         }
 
-        String currentNewsCategory="";
+        String currentNewsCategory = "";
         cur.moveToFirst();
         /**END**/
         for (int i = 0; i < numRows; i++) {
@@ -428,9 +313,9 @@ public class Initilization extends AppCompatActivity {
             Initilization.resultArray[i][Initilization.CategoryorNews] = cur.getString(CategoryorNews);
             Initilization.resultArray[i][Initilization.FullText] = cur.getString(FullText);
             Initilization.resultArray[i][Initilization.NewsUrl] = cur.getString(NewsUrl);
-            currentNewsCategory=Initilization.resultArray[i][Initilization.DisplayOrder];
+            currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
 
-            int cuDispOrder=0;
+            int cuDispOrder = 0;
             try {
                 Initilization.resultArrayLength++;
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
@@ -447,19 +332,118 @@ public class Initilization extends AppCompatActivity {
                 try {
                     cur.moveToNext();
                 } catch (Exception e) {/*Index out of bounds*/}
-            }
-            catch (Exception ee){/****/}
+            } catch (Exception ee) {/****/}
         }
 
         db.close(); // Closing database connection
 
         Initilization.addOnList.add(2, "EverYou");
         Initilization.addOnList.add(3, "YouView");
-        Initilization.getAddOnListRSSID.add(2,"NULL");
+        Initilization.getAddOnListRSSID.add(2, "NULL");
         Initilization.getAddOnListRSSID.add(3,"NULL");
         Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
         Initilization.addOnList.removeAll(Arrays.asList(null, ""));
         Initilization.addOnListTOCompare.clear();
+    }
+
+    class GetNewsTask extends AsyncTask<Void, Integer, Void> {
+        int goCode = 0;
+        String content;
+        int ExceptionCode = 0;
+        TextView tv = (TextView) findViewById(R.id.response);
+
+        @Override
+        protected void onPreExecute() {
+            tv.setText("Connecting...");
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            if (progress[0] == 0)
+                tv.setText("Downloading news for the first time...please wait");
+            if (progress[0] == 1)
+                tv.setText("Formatting news...please wait");
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            SQL_CREATE_ENTRIES = "CREATE TABLE  IF NOT EXISTS " + TABLE_NAME + "("
+                    + CATEGORYID + " TEXT , "
+                    + CATEGORYNAME + " TEXT , " + DISPLAYORDER
+                    + " TEXT , " + RSSTITLE + " TEXT , "
+                    + RSSURL_DB + " TEXT , " + RSSURLID
+                    + " TEXT , " + NEWSID + " TEXT UNIQUE, "
+                    + NEWSTITLE + " TEXT , " + SUMMARY
+                    + " TEXT , " + NEWSIMAGE + " TEXT , " + NEWSDATE
+                    + " TEXT , " + NEWSDISPLAYORDER
+                    + " TEXT , " + CATEGORYORNEWS + " TEXT , " + FULLTEXT
+                    + " TEXT , " + NEWSURL
+                    + " TEXT , " + RESERVED_2 + " TEXT , " + RESERVED_3
+                    + " TEXT , " + RESERVED_4 + " TEXT );";
+
+            db = openOrCreateDatabase(TABLE_NAME, MODE_PRIVATE, null);
+            db.execSQL(SQL_CREATE_ENTRIES);
+            numRows = DatabaseUtils.queryNumEntries(db, TABLE_NAME);
+            if (numRows < 50) {
+                try {
+                    publishProgress(0);
+                    androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+                    String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId=" + androidId;//Over ride but should be Main.androidId
+                    goCode = 1;
+                    content = Jsoup.connect(fetchLink).ignoreContentType(true).timeout(timeout + timeout).execute().body();
+                } catch (Exception e) {
+                    if (e instanceof SocketTimeoutException) {
+                        ExceptionCode = 1;
+                        return null;
+                    }
+                    if (e instanceof HttpStatusException) {
+                        ExceptionCode = 2;
+                        return null;
+                    }
+                    e.printStackTrace();
+                }
+            } else {
+                goCode = 2;
+            }
+            db.close();
+            publishProgress(1);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (ExceptionCode > 0) {
+                if (ExceptionCode == 1)
+                    Toast.makeText(getApplicationContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                if (ExceptionCode == 2)
+                    Toast.makeText(getApplicationContext(), "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(getApplicationContext(), "Unknown exception,program will now exit", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            if ((content != null && goCode == 1) || (content != null && sharedpreferences.getBoolean(Main.NEWCHANNELADDED, false))) {
+                String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
+                //Log.d("response", result);
+                //after getting the response we have to parse it
+                parseResults(result);
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putBoolean(Main.NEWCHANNELADDED, false);
+                editor.commit();
+                Intent main = new Intent(Initilization.this, Main.class);
+                startActivity(main);
+                finish();
+            } else if (goCode == 2) {
+                offlineparseResults();
+                Intent main = new Intent(Initilization.this, Main.class);
+                startActivity(main);
+                finish();
+            } else {
+                Toast.makeText(getApplicationContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            super.onPostExecute(aVoid);
+        }
     }
 }
 

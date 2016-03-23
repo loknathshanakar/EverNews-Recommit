@@ -12,7 +12,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.CountDownTimer;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -24,7 +24,6 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -36,50 +35,39 @@ import com.facebook.share.widget.ShareDialog;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
-import org.jsoup.parser.Parser;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 public class ReusableFragment extends Fragment {
-    private SwipeRefreshLayout refreshLayout;
-    private static GridView gridView;
-    SQLiteDatabase db;
     private static final String TYPE_KEY = "type";
     private static final int REQUESTCODE = 1900;
     private static final String TAB_NAME = "tab_name";
+    static List<ItemObject> asyncitems = new ArrayList<>();
+    private static GridView gridView;
     private static  String asyncCatId="";
     private static  String asyncNewsId="";
+    // private static ProgressBar progressBar;
+    SQLiteDatabase db;
     CallbackManager callbackManager;
     ShareDialog shareDialog;
     String newsTitle;
     String newsLink;
     CustomAdapter customAdapter;
     Context context;
-    static List<ItemObject> asyncitems = new ArrayList<>();
     Button btn;
+    List<ItemObject> itemCollection = new ArrayList<>();
+    private SwipeRefreshLayout refreshLayout;
     private int refrenceCounter=0;
+
     public ReusableFragment() {
     }
-
-    @Override
-    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
-    }
-
 
     public static ReusableFragment newInstanceRe(int sectionNumber,String tabName) {
         Bundle args = new Bundle();
@@ -89,12 +77,28 @@ public class ReusableFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-    List <ItemObject> itemCollection=new ArrayList<>();
+
+    public static String urlEncode(String s) {
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.wtf("TAG", "UTF-8 should always be supported", e);
+            throw new RuntimeException("URLEncoder.encode() failed for " + s);
+        }
+    }
+
+    @Override
+    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         gridView = (GridView)rootView.findViewById(R.id.gridview);
-
+        // progressBar=(ProgressBar)rootView.findViewById(R.id.progress_frag);
+        //progressBar.setVisibility(View.GONE);
         context=getContext();
         refreshLayout=(SwipeRefreshLayout)rootView.findViewById(R.id.swipe_view);
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -158,12 +162,12 @@ public class ReusableFragment extends Fragment {
                                 iIndex = Xml.indexOf("<FullText>") + 10;
                                 eIndex = Xml.indexOf("</FullText>");
                                 if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                                    news = Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
+                                    news = String.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
                                 }
                                 iIndex = Xml.indexOf("<NewsTitle>") + 11;
                                 eIndex = Xml.indexOf("</NewsTitle>");
                                 if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                                    title = Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
+                                    title = String.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
                                     if (title == null)
                                         i.putExtra("NEWS_TITLE", "NULL");
                                     else
@@ -173,13 +177,13 @@ public class ReusableFragment extends Fragment {
                                 iIndex = Xml.indexOf("<RSSTitle>") + 10;
                                 eIndex = Xml.indexOf("</RSSTitle>");
                                 if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                                    source = Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
+                                    source = String.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
                                     source = "<h2><center>" + source + "</center></h2>";
                                 }
                                 iIndex = Xml.indexOf("<NewsURL>") + 9;
                                 eIndex = Xml.indexOf("</NewsURL>");
                                 if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                                    newsLink = Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
+                                    newsLink = String.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
                                     if (title == null)
                                         i.putExtra("NEWS_LINK", "NULL");
                                     else
@@ -205,7 +209,6 @@ public class ReusableFragment extends Fragment {
                 startActivity(i);
             }
         });
-
 
         FacebookSdk.sdkInitialize(getContext());
         callbackManager = CallbackManager.Factory.create();
@@ -258,7 +261,8 @@ public class ReusableFragment extends Fragment {
                                     case 3:
                                         openInBrowser();
                                         break;
-                                    case 4: ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(context.CLIPBOARD_SERVICE);
+                                    case 4:
+                                        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
                                         ClipData clip = ClipData.newPlainText(newsTitle, newsLink);
                                         clipboard.setPrimaryClip(clip);
                                         Toast.makeText(getContext() == null ? context : context, "Link copied to clipboard", Toast.LENGTH_SHORT).show();
@@ -286,6 +290,7 @@ public class ReusableFragment extends Fragment {
                         public void onClick(View v) {
                             //Toast.makeText(getContext(),"Loading more news",Toast.LENGTH_LONG).show();
                             fab.setVisibility(View.GONE);
+                            Main.progress.setVisibility(View.VISIBLE);
                             new AsyncTask<Void,Void,String>()
                             {
                                 String content;
@@ -305,7 +310,7 @@ public class ReusableFragment extends Fragment {
                                     {
                                         asyncNewsId=itemCollection.get(itemCollection.size()-1).getNewsID();
                                         asyncCatId=itemCollection.get(itemCollection.size()-1).getCategoryID();
-                                        Initilization.androidId = android.provider.Settings.Secure.getString(getContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+                                        Initilization.androidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
                                         String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadNextNewsForCategory?CategoryId="+asyncCatId+"&LastNewsId="+asyncNewsId;//+Initilization.androidId;//Over ride but should be Main.androidId
                                         content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
                                     }
@@ -328,13 +333,14 @@ public class ReusableFragment extends Fragment {
                                 @Override
                                 protected void onPostExecute(String link)
                                 {
+                                    Main.progress.setVisibility(View.VISIBLE);
                                     if(ExceptionCode>0) {
                                         if(ExceptionCode==1)
-                                            Toast.makeText(getContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
-                                        if(ExceptionCode==2)
-                                            Toast.makeText(getContext(),"Some server related issue occurred..please try again later",Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                                        else if (ExceptionCode == 2)
+                                            Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
                                         else
-                                            Toast.makeText(getContext(),"Unknown error occurred,check your internet connection",Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(context, "Unknown error occurred,check your internet connection", Toast.LENGTH_SHORT).show();
                                     }
                                     if(content!=null && ExceptionCode==0)
                                     {
@@ -352,20 +358,10 @@ public class ReusableFragment extends Fragment {
                                             asyncitems.remove(0);
                                             itemCollection.addAll(asyncitems);
                                             customAdapter.notifyDataSetChanged();
-                                            Toast.makeText(getContext(),"More news loaded",Toast.LENGTH_LONG).show();
+                                            //Toast.makeText(getContext(),"More news loaded",Toast.LENGTH_LONG).show();
                                         }
-                                       /* for(int i=0;i<asyncitems.size();i++){
-                                            if(getArguments().getString(TAB_NAME).compareTo(itemCollection.get(i).getnewsName())!=0){
-                                               asyncitems.remove(i);
-                                            }
-                                        }*/
-                                        //CustomAdapter customAdapter = new CustomAdapter(getActivity(), itemCollection);
-                                        //int postionToMaintain = gridView.getLastVisiblePosition();
-                                        //gridView.setAdapter(customAdapter);
-                                        //gridView.setSelection(postionToMaintain);
-                                        //Toast.makeText(getContext(),"More news loaded",Toast.LENGTH_LONG).show();
+                                        Main.progress.setVisibility(View.GONE);
                                     }
-                                    Main.progress.setVisibility(View.GONE);
                                 }
                             }.execute();
                         }
@@ -400,7 +396,7 @@ public class ReusableFragment extends Fragment {
                     if (tabName.compareTo(Initilization.resultArray[j][Initilization.Category]) == 0) {
                         String NewsImage = Initilization.resultArray[j][Initilization.NewsImage];
                         String NewsTitle = Initilization.resultArray[j][Initilization.NewsTitle];
-                        String RSSTitle = Initilization.resultArray[j][Initilization.Category];
+                        String RSSTitle = Initilization.resultArray[j][Initilization.RSSTitle];
                         String NewsId = Initilization.resultArray[j][Initilization.NewsId];
                         String CategoryId = Initilization.resultArray[j][Initilization.CategoryId];
                         String FullText = Initilization.resultArray[j][Initilization.FullText];
@@ -417,68 +413,6 @@ public class ReusableFragment extends Fragment {
             }
         }
         return items;
-    }
-
-    class GetNewsTask extends AsyncTask<Void,Void,Void>
-    {
-        String content;
-        int ExceptionCode=0;
-        @Override
-        protected void onPreExecute()
-        {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params)
-        {
-            try
-            {
-                Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
-                content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
-            }
-            catch(Exception e)
-            {
-                if(e instanceof SocketTimeoutException) {
-                    ExceptionCode=1;
-                    return null;
-                }
-                if(e instanceof HttpStatusException) {
-                    ExceptionCode=2;
-                    return null;
-                }
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            refreshLayout.setRefreshing(false);
-            refreshLayout.destroyDrawingCache();
-            refreshLayout.clearAnimation();
-            if (ExceptionCode > 0) {
-                if (ExceptionCode == 1)
-                    Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
-                if (ExceptionCode == 2)
-                    Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
-            }
-            if (content != null) {
-                String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
-                parseResultsMAIN(result);
-                //getActivity().recreate();
-                List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
-                //if(itemCollection.get(0).getnewsName().isEmpty())
-                /**CAUTION HERE**/
-                itemCollection.addAll(allItems);
-                int postionToMaintain= gridView.getFirstVisiblePosition();
-                customAdapter = new CustomAdapter(getActivity(), itemCollection);
-                gridView.setAdapter(customAdapter);
-                gridView.setSelection(postionToMaintain);
-                super.onPostExecute(aVoid);
-            }
-        }
     }
 
     public void parseResultsMAIN(String response) {
@@ -816,7 +750,7 @@ public class ReusableFragment extends Fragment {
 
             NewsImage=tempResults[i][Initilization.NewsImage];
             NewsTitle=tempResults[i][Initilization.NewsTitle];
-            RSSTitle=tempResults[i][Initilization.Category];
+            RSSTitle = tempResults[i][Initilization.RSSTitle];
             NewsId=tempResults[i][Initilization.NewsId];
             CategoryId=tempResults[i][Initilization.CategoryId];
             FullText=tempResults[i][Initilization.FullText];
@@ -861,15 +795,6 @@ public class ReusableFragment extends Fragment {
         }catch (Exception e){e.printStackTrace();}
     }
 
-    public static String urlEncode(String s) {
-        try {
-            return URLEncoder.encode(s, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            Log.wtf("TAG", "UTF-8 should always be supported", e);
-            throw new RuntimeException("URLEncoder.encode() failed for " + s);
-        }
-    }
-
     public void openInBrowser() {
         try {
             Intent i = new Intent(Intent.ACTION_VIEW);
@@ -902,11 +827,68 @@ public class ReusableFragment extends Fragment {
                 return;
             }
             startActivity(gmail);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(getContext() == null ? getContext() : getContext(), "Gmail client not found \nUse Share by other ", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    class GetNewsTask extends AsyncTask<Void, Void, Void> {
+        String content;
+        int ExceptionCode = 0;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+                String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId=" + Initilization.androidId;//Over ride but should be Main.androidId
+                content = Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+            } catch (Exception e) {
+                if (e instanceof SocketTimeoutException) {
+                    ExceptionCode = 1;
+                    return null;
+                }
+                if (e instanceof HttpStatusException) {
+                    ExceptionCode = 2;
+                    return null;
+                }
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            refreshLayout.setRefreshing(false);
+            refreshLayout.destroyDrawingCache();
+            refreshLayout.clearAnimation();
+            if (ExceptionCode > 0) {
+                if (ExceptionCode == 1)
+                    Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                if (ExceptionCode == 2)
+                    Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+            }
+            if (content != null) {
+                String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
+                parseResultsMAIN(result);
+                //getActivity().recreate();
+                List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
+                //if(itemCollection.get(0).getnewsName().isEmpty())
+                /**CAUTION HERE**/
+                itemCollection.addAll(allItems);
+                int postionToMaintain = gridView.getFirstVisiblePosition();
+                customAdapter = new CustomAdapter(getActivity(), itemCollection);
+                gridView.setAdapter(customAdapter);
+                gridView.setSelection(postionToMaintain);
+                super.onPostExecute(aVoid);
+            }
+        }
     }
 
 }

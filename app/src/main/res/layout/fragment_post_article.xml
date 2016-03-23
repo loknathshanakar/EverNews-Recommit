@@ -1,0 +1,98 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.evernews.evernews.PostArticle">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/post_article"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:gravity="center"
+            android:text="Post Your Article"
+            android:textColor="#9e9e9e"
+            android:textSize="22sp" />
+
+        <EditText
+            android:id="@+id/spinner_post"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/title"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="5dp"
+            android:hint="Your city"
+            android:spinnerMode="dropdown" />
+
+        <EditText
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/post_article"
+            android:layout_margin="5dp"
+            android:hint="Article title (Min 8 char) " />
+
+
+        <ImageView
+            android:id="@+id/viewImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_alignEnd="@+id/fakeView"
+            android:layout_alignRight="@+id/fakeView"
+            android:layout_below="@+id/spinner_post"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="20dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitXY"
+            android:src="@mipmap/camera2" />
+
+        <View
+            android:id="@+id/fakeView"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_centerInParent="true"
+            android:background="#FFAABB" />
+
+        <EditText
+            android:id="@+id/post"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_below="@+id/viewImage"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10dp"
+            android:ems="10"
+            android:gravity="top"
+            android:hint="Enter your article (Min of 20 characters)"
+            android:inputType="textMultiLine" />
+
+        <Button
+            android:id="@+id/submitPost"
+            android:layout_width="120sp"
+            android:layout_height="40sp"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@+id/post"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/btn_bg"
+            android:text="Submit Article"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/btnSelectPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/viewImage"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="18dp"
+            android:layout_marginLeft="20dp"
+            android:layout_toEndOf="@+id/fakeView"
+            android:layout_toRightOf="@+id/fakeView"
+            android:background="@drawable/btn_bg"
+            android:text="  Select Photo  "
+            android:textColor="#ffffff" />
+    </RelativeLayout>
+</ScrollView>

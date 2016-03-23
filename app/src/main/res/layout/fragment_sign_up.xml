@@ -1,0 +1,157 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_marginBottom="100dp"
+    android:weightSum="1.0"
+    tools:context="com.evernews.evernews.SignUp">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <LinearLayout
+            android:id="@+id/top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp">
+
+            <EditText
+                android:id="@+id/userName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:hint="Your Name " />
+
+
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:autoLink="phone"
+                android:ems="10"
+                android:hint="Password (Min 6 char) "
+                android:inputType="textPassword" />
+
+            <EditText
+                android:id="@+id/comfirmpassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:autoLink="phone"
+                android:ems="10"
+                android:hint="Retype password here"
+                android:inputType="textPassword" />
+
+            <EditText
+                android:id="@+id/userEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:autoLink="email"
+                android:ems="10"
+                android:hint="Email Address "
+                android:inputType="textEmailAddress" />
+
+            <EditText
+                android:id="@+id/spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="5dp"
+                android:hint="Your city"
+                android:spinnerMode="dropdown" />
+
+            <EditText
+                android:id="@+id/userNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:autoLink="phone"
+                android:ems="10"
+                android:hint="Phone Number"
+                android:inputType="phone" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayout2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/top"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="35dp">
+
+            <Button
+                android:id="@+id/signup"
+                android:layout_width="95sp"
+                android:layout_height="40sp"
+                android:background="@drawable/btn_bg"
+                android:text="Register"
+                android:textColor="#ffffff" />
+
+            <!--android:textAllCaps="false"-->
+
+            <Button
+                android:id="@+id/noAction"
+                android:layout_width="75sp"
+                android:layout_height="40sp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="10sp"
+                android:background="@drawable/btn_bg"
+                android:text="Login"
+                android:textColor="#ffffff" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/facebook_normal"
+            android:layout_width="fill_parent"
+            android:layout_height="40sp"
+            android:layout_below="@+id/linearLayout2"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="15dp"
+            android:background="#3b5998"
+            android:text="Register via Facebook"
+            android:textColor="#ffffffff" />
+
+        <Button
+            android:id="@+id/twitter"
+            android:layout_width="fill_parent"
+            android:layout_height="40sp"
+            android:layout_below="@+id/facebook_normal"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="15dp"
+            android:background="#55ACEE"
+            android:text="Register via Twitter"
+            android:textColor="#ffffffff" />
+
+        <Button
+            android:id="@+id/google"
+            android:layout_width="fill_parent"
+            android:layout_height="40sp"
+            android:layout_below="@+id/twitter"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="15dp"
+            android:background="#D64534"
+            android:text="Register via Google"
+            android:textColor="#ffffffff" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="40sp"
+            android:layout_below="@+id/google"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="15dp"
+            android:background="#D64534"
+            android:text="Register via Google"
+            android:textColor="#ffffffff"
+            android:visibility="invisible" />
+    </RelativeLayout>
+</ScrollView>
