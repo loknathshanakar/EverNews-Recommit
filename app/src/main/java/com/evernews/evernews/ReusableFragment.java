@@ -43,7 +43,9 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ReusableFragment extends Fragment {
     private static final String TYPE_KEY = "type";
@@ -757,10 +759,14 @@ public class ReusableFragment extends Fragment {
             NewsUrl=tempResults[i][Initilization.NewsUrl];
             asyncitems.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
             for(int k=0;k<itemCollection.size();k++){
-                if(itemCollection.get(k).getNewsID().contains(NewsId) && asyncitems.size()-1>=0){
+                if((itemCollection.get(k).getNewsID().contains(NewsId) && asyncitems.size()-1>=0 )|| (itemCollection.get(k).getnewsTitle().compareTo(NewsTitle)==0&&asyncitems.size()-1>=0)){
                     asyncitems.remove(asyncitems.size()-1);
                 }
             }
+            Set<ItemObject> remover = new LinkedHashSet<>();
+            remover.addAll(asyncitems);
+            asyncitems.clear();
+            asyncitems.addAll(remover);
         }
         db.close();
     }
