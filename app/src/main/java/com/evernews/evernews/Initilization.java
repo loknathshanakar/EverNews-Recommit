@@ -80,6 +80,25 @@ public class Initilization extends AppCompatActivity {
         setContentView(R.layout.activity_initilization);
         getSupportActionBar().hide();
         sharedpreferences = getApplicationContext().getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
+        if (sharedpreferences.getInt(Main.ERASETABLE_1, 0)!=123) {
+            try {
+                String path = DB_PATH + DB_NAME;
+                db = SQLiteDatabase.openDatabase(path, null, 0);
+                db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+                //Toast.makeText(this, "Previous table erased", Toast.LENGTH_LONG).show();
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putInt(Main.ERASETABLE_1, 123);
+                editor.apply();
+            } catch (Exception e) {
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putInt(Main.ERASETABLE_1, 123);
+                editor.apply();
+            }finally {
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putInt(Main.ERASETABLE_1, 123);
+                editor.apply();
+            }
+        }
         new GetNewsTask().execute();
     }
 
@@ -235,6 +254,12 @@ public class Initilization extends AppCompatActivity {
             values.put(Initilization.CATEGORYORNEWS, Initilization.resultArray[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
+
+            if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
+                values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
+            else
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i);
+
             int cuDispOrder = 0;
             currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
             db.insert(Initilization.TABLE_NAME, null, values);
@@ -243,9 +268,9 @@ public class Initilization extends AppCompatActivity {
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
 
                 if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                    Initilization.addOnList.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.add(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                    Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                 }
                 if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                     Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
@@ -320,9 +345,9 @@ public class Initilization extends AppCompatActivity {
                 Initilization.resultArrayLength++;
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
                 if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                    Initilization.addOnList.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.add(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                    Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                 }
                 if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                     Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
@@ -361,7 +386,7 @@ public class Initilization extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(Integer... progress) {
             if (progress[0] == 0)
-                tv.setText("Downloading news for the first time...please wait");
+                tv.setText("Downloading news for the first time...please wait as it might take some time");
             if (progress[0] == 1)
                 tv.setText("Formatting news...please wait");
         }
@@ -373,13 +398,13 @@ public class Initilization extends AppCompatActivity {
                     + CATEGORYNAME + " TEXT , " + DISPLAYORDER
                     + " TEXT , " + RSSTITLE + " TEXT , "
                     + RSSURL_DB + " TEXT , " + RSSURLID
-                    + " TEXT , " + NEWSID + " TEXT UNIQUE, "
+                    + " TEXT , " + NEWSID + " TEXT , "
                     + NEWSTITLE + " TEXT , " + SUMMARY
                     + " TEXT , " + NEWSIMAGE + " TEXT , " + NEWSDATE
                     + " TEXT , " + NEWSDISPLAYORDER
                     + " TEXT , " + CATEGORYORNEWS + " TEXT , " + FULLTEXT
                     + " TEXT , " + NEWSURL
-                    + " TEXT , " + RESERVED_2 + " TEXT , " + RESERVED_3
+                    + " TEXT , " + RESERVED_2 + " TEXT UNIQUE , " + RESERVED_3
                     + " TEXT , " + RESERVED_4 + " TEXT );";
 
             db = openOrCreateDatabase(TABLE_NAME, MODE_PRIVATE, null);
@@ -427,9 +452,9 @@ public class Initilization extends AppCompatActivity {
                 //Log.d("response", result);
                 //after getting the response we have to parse it
                 parseResults(result);
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                editor.putBoolean(Main.NEWCHANNELADDED, false);
-                editor.commit();
+                //SharedPreferences.Editor editor = sharedpreferences.edit();
+                //editor.putBoolean(Main.NEWCHANNELADDED, false);
+                //editor.commit();
                 Intent main = new Intent(Initilization.this, Main.class);
                 startActivity(main);
                 finish();

@@ -269,7 +269,7 @@
                     android:layout_margin="10sp"
                     android:paddingLeft="20sp"
                     android:textSize="15sp"
-                    android:text="0.0317"/>
+                    android:text="@string/app_with_version"/>
             </LinearLayout>
         </LinearLayout>
 

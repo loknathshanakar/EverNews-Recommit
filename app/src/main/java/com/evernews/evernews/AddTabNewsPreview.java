@@ -2,9 +2,11 @@ package com.evernews.evernews;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
@@ -34,6 +36,7 @@ import java.util.List;
 public class AddTabNewsPreview extends DialogFragment {
     SwipeRefreshLayout refresh;
     private static String RSSUID="";
+    private Context context;
     private static String channelDetails="";
     public interface AddListener {
         void onAdd(AddTabNewsPreview dialog);
@@ -160,7 +163,7 @@ public class AddTabNewsPreview extends DialogFragment {
                         if(ExceptionCode==0) {
                             SharedPreferences.Editor editor = sharedpreferences.edit();
                             editor.putBoolean(Main.NEWCHANNELADDED, true);
-                            editor.commit();
+                            editor.apply();
                             Snackbar snackbar = Snackbar.make(add, "News added successfully...", Snackbar.LENGTH_LONG);
                             snackbar.show();
                         }

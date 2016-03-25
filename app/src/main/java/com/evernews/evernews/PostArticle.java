@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -24,6 +25,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
 
 import org.jibble.simpleftp.SimpleFTP;
 import org.jsoup.HttpStatusException;
@@ -57,13 +60,13 @@ public class PostArticle extends Fragment implements View.OnClickListener{
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    private TextView title,post;
+    private TextView title,post,city;
     private ImageView viewImage;
     private final String USERLOGINDETAILS = "USERLOGINDETAILS" ;
     private static SharedPreferences sharedpreferences;
     public static String uniqueID="";
     private OnFragmentInteractionListener mListener;
-    EditText mSpinner;
+    EditText mCity;
     public PostArticle() {
         // Required empty public constructor
     }
@@ -108,13 +111,13 @@ public class PostArticle extends Fragment implements View.OnClickListener{
         post=(TextView)view.findViewById(R.id.post);
         viewImage=(ImageView)view.findViewById(R.id.viewImage);
         sharedpreferences = getActivity().getSharedPreferences(USERLOGINDETAILS, Context.MODE_PRIVATE);
-        mSpinner = (EditText) view.findViewById(R.id.spinner_post);
+        mCity = (EditText) view.findViewById(R.id.spinner_post);
         //Fill spinner
         /*String[] arraySpinner=new String[] {
                 "Select your city", "Delhi", "Mumbai", "Bangalore", "One more city"
         };
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, arraySpinner);
-        mSpinner.setAdapter(adapter);*/
+        mCity.setAdapter(adapter);*/
         return view;
         //return inflater.inflate(R.layout.fragment_post_article, container, false);
     }
@@ -126,8 +129,9 @@ public class PostArticle extends Fragment implements View.OnClickListener{
             case R.id.submitPost: {
                     final String articleTitle=title.getText().toString();
                     final String articleContent=post.getText().toString();
+                    final String city=mCity.getText().toString();
                     final String extStorageDirectory = Environment.getExternalStorageDirectory().toString();
-                    if(articleTitle.length()<8 || articleContent.length()<20 || mSpinner.getText().toString().length()<=2){
+                    if(articleTitle.length()<8 || articleContent.length()<20 || mCity.getText().toString().length()<=2){
                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                         builder.setMessage("Article title or content does not meet the required specification")
                                 .setCancelable(false)
@@ -170,28 +174,9 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                             protected String doInBackground(Void... params) {
                                 try {
                                     SimpleFTP ftp = new SimpleFTP();
-                                    //HostName : 178.77.67.207
-                                    //username : APPUser
-                                    //Password : 7Prr1z@6
-                                    // Connect to an FTP server on port 21.
                                     ftp.connect("178.77.67.207", 21, "APPUser", "7Prr1z@6");
-
-                                    // Set binary mode.
-                                    //ftp.bin();
-
-                                    // Change to a new working directory on the FTP server.
-                                    //ftp.cwd("web");
-
-                                    // Upload some files.
                                     publishProgress(1);
                                     ftp.stor(new File(extStorageDirectory, uniqueID + ".jpg"));
-                                    //ftp.stor(new File("comicbot-latest.png"));
-
-                                    // You can also upload from an InputStream, e.g.
-                                    //ftp.stor(new FileInputStream(new File("test.png")), "test.png");
-                                    //ftp.stor(someSocket.getInputStream(), "blah.dat");
-
-                                    // Quit from the FTP server.
                                     ftp.disconnect();
                                 }
                                 catch (IOException e) {
@@ -217,7 +202,7 @@ public class PostArticle extends Fragment implements View.OnClickListener{
 
                                 Initilization.androidId = android.provider.Settings.Secure.getString(getContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
                                 int AppUserId=sharedpreferences.getInt("USERID", 0);
-                                String urlStr="http://rssapi.psweb.in/everapi.asmx/NewPost?AppUserId="+AppUserId+"&Title="+articleTitle+"&Description="+articleContent+"&PostImage="+uniqueID+"&AndroidId="+Initilization.androidId;
+                                String urlStr="http://rssapi.psweb.in/everapi.asmx/NewPost?AppUserId="+AppUserId+"&Title="+articleTitle+"&Description="+articleContent+"&PostImage="+uniqueID+"&AndroidId="+Initilization.androidId+"&City="+city;
                                 URL url=null;
                                 try{
                                     url = new URL(urlStr);
@@ -256,9 +241,9 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                                                 return null;
                                             }
                                         } finally {
-                                            File file = new File(extStorageDirectory, uniqueID + ".jpg");
+                                            /*File file = new File(extStorageDirectory, uniqueID + ".jpg");
                                             file.delete();
-                                            uniqueID="";
+                                            uniqueID="";*/
                                         }
                                         return null;
                                     }
@@ -280,7 +265,10 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                                             viewImage.setImageResource(R.mipmap.camera2);
                                             title.setText("");
                                             post.setText("");
-                                            mSpinner.setText("");
+                                            mCity.setText("");
+                                            File file = new File(extStorageDirectory, uniqueID + ".jpg");
+                                            file.delete();
+                                            uniqueID="";
                                         }
                                         Main.progress.setVisibility(View.GONE);
                                         progressdlg.dismiss();
@@ -327,17 +315,17 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                 for (File temp : f.listFiles()) {
                     if (temp.getName().equals(uniqueID+".jpg")) {
                         f = temp;
-                        // File photo = new File(Environment.getExternalStorageDirectory(), uniqueID+".jpg");
                         break;
                     }
                 }
                 try {
-                    Bitmap bitmap;
+                    final Bitmap bitmap;
                     BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+                    bitmapOptions.inSampleSize = 2;
                     bitmap = BitmapFactory.decodeFile(f.getAbsolutePath(), bitmapOptions);
                     savebitmap(bitmap);
                     viewImage.setImageBitmap(bitmap);
-                    //Glide.with(getContext()).load(bitmap).asBitmap().fitCenter().into(viewImage);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -349,11 +337,12 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                 int columnIndex = c.getColumnIndex(filePath[0]);
                 String picturePath = c.getString(columnIndex);
                 c.close();
-                Bitmap thumbnail = (BitmapFactory.decodeFile(picturePath));
-                Log.w("path of image from gallery......******************.........", picturePath + "");
-                savebitmap(thumbnail);
-                //Glide.with(getContext()).load(thumbnail).asBitmap().fitCenter().into(viewImage);
-                viewImage.setImageBitmap(thumbnail);
+                BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+                bitmapOptions.inSampleSize = 2;
+                Bitmap bitmap = BitmapFactory.decodeFile(picturePath, bitmapOptions);
+                //final Bitmap thumbnail = (BitmapFactory.decodeFile(picturePath));
+                savebitmap(bitmap);
+                viewImage.setImageBitmap(bitmap);
             }
         }
     }

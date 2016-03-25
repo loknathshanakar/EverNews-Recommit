@@ -32,6 +32,8 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookSdk;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -55,6 +57,7 @@ public class ReusableFragment extends Fragment {
     private static GridView gridView;
     private static  String asyncCatId="";
     private static  String asyncNewsId="";
+    Tracker mTracker;
     // private static ProgressBar progressBar;
     SQLiteDatabase db;
     CallbackManager callbackManager;
@@ -97,6 +100,8 @@ public class ReusableFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         gridView = (GridView)rootView.findViewById(R.id.gridview);
         // progressBar=(ProgressBar)rootView.findViewById(R.id.progress_frag);
@@ -106,8 +111,6 @@ public class ReusableFragment extends Fragment {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                // Do work to refresh the list here.
-               // Toast.makeText(context,"Refresh in background has started...",Toast.LENGTH_LONG).show();
                 new GetNewsTask().execute();
             }
         });
@@ -119,7 +122,7 @@ public class ReusableFragment extends Fragment {
             gridView.setNumColumns(2);
         }
         List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
-        customAdapter = new CustomAdapter(getActivity(), itemCollection);
+        customAdapter = new CustomAdapter(context, itemCollection);
         itemCollection.addAll(allItems);
         //customAdapter.notifyDataSetChanged();
         int postionToMaintain= gridView.getFirstVisiblePosition();
@@ -343,6 +346,7 @@ public class ReusableFragment extends Fragment {
                                             Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
                                         else
                                             Toast.makeText(context, "Unknown error occurred,check your internet connection", Toast.LENGTH_SHORT).show();
+                                        Main.progress.setVisibility(View.GONE);
                                     }
                                     if(content!=null && ExceptionCode==0)
                                     {
@@ -359,7 +363,7 @@ public class ReusableFragment extends Fragment {
                                         if(tabNameI==resultsID){
                                             asyncitems.remove(0);
                                             itemCollection.addAll(asyncitems);
-                                            customAdapter.notifyDataSetChanged();
+                                            //customAdapter.notifyDataSetChanged();
                                             //Toast.makeText(getContext(),"More news loaded",Toast.LENGTH_LONG).show();
                                         }
                                         Main.progress.setVisibility(View.GONE);
@@ -407,7 +411,7 @@ public class ReusableFragment extends Fragment {
                         refrenceCounter++;
                         //Need to implement a filter to prevent re adding of data
                         for (int k = 0; k < itemCollection.size(); k++) {
-                            if (itemCollection.get(k).getNewsID().compareTo(NewsId) == 0) {
+                            if (itemCollection.get(k).getNewsID().compareTo(NewsId) == 0 && items.size()-1>=0) {
                                 items.remove(items.size() - 1);
                             }
                         }
@@ -431,11 +435,11 @@ public class ReusableFragment extends Fragment {
             }
             /**END**/
             /**Clear adOnList and etc**/
-            Initilization.addOnList.clear();
+            //Initilization.addOnList.clear();
             Initilization.addOnListTOCompare.clear();
             Initilization.getAddOnListRSSID.clear();
             for (int i = 0; i < 20; i++) {
-                Initilization.addOnList.add("");
+                //Initilization.addOnList.add("");
                 Initilization.addOnListTOCompare.add("");
                 Initilization.getAddOnListRSSID.add("");
             }
@@ -570,6 +574,12 @@ public class ReusableFragment extends Fragment {
                 values.put(Initilization.CATEGORYORNEWS, Initilization.resultArray[i][Initilization.CategoryorNews]);
                 values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
                 values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
+
+                if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
+                    values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
+                else
+                    values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i);
+
                 int cuDispOrder = 0;
                 currentNewsCategory=Initilization.resultArray[i][Initilization.DisplayOrder];
                 db.insert(Initilization.TABLE_NAME, null, values);
@@ -577,12 +587,12 @@ public class ReusableFragment extends Fragment {
                     Initilization.resultArrayLength++;
                     cuDispOrder = Integer.parseInt(currentNewsCategory);
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                        Initilization.addOnList.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.add(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                        Initilization.addOnListTOCompare.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                        //Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                     }
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
-                        Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
+                        //Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
                         Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
                         Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
                     }
@@ -591,8 +601,8 @@ public class ReusableFragment extends Fragment {
 
             db.close(); // Closing database connection
 
-            Initilization.addOnList.add(2, "EverYou");
-            Initilization.addOnList.add(3, "YouView");
+            //Initilization.addOnList.add(2, "EverYou");
+            //Initilization.addOnList.add(3, "YouView");
             Initilization.getAddOnListRSSID.add(2, "NULL");
             Initilization.getAddOnListRSSID.add(3, "NULL");
             Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
@@ -746,8 +756,13 @@ public class ReusableFragment extends Fragment {
             values.put(Initilization.NEWSDISPLAYORDER,tempResults[i][Initilization.NewsDisplayOrder]);
             values.put(Initilization.CATEGORYORNEWS,tempResults[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT,tempResults[i][Initilization.FullText]);
-            values.put(Initilization.NEWSURL,tempResults[i][Initilization.NewsUrl]);
+            values.put(Initilization.NEWSURL, tempResults[i][Initilization.NewsUrl]);
 
+
+            if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
+                values.put(Initilization.RESERVED_2, tempResults[i][Initilization.NewsId]);
+            else
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i);
             db.insert(Initilization.TABLE_NAME, null, values);
 
             NewsImage=tempResults[i][Initilization.NewsImage];
@@ -763,10 +778,10 @@ public class ReusableFragment extends Fragment {
                     asyncitems.remove(asyncitems.size()-1);
                 }
             }
-            Set<ItemObject> remover = new LinkedHashSet<>();
+            /*Set<ItemObject> remover = new LinkedHashSet<>();
             remover.addAll(asyncitems);
             asyncitems.clear();
-            asyncitems.addAll(remover);
+            asyncitems.addAll(remover);*/
         }
         db.close();
     }
@@ -882,16 +897,20 @@ public class ReusableFragment extends Fragment {
             }
             if (content != null) {
                 String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
+
                 parseResultsMAIN(result);
-                //getActivity().recreate();
+
                 List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
                 //if(itemCollection.get(0).getnewsName().isEmpty())
                 /**CAUTION HERE**/
-                itemCollection.addAll(allItems);
-                int postionToMaintain = gridView.getFirstVisiblePosition();
-                customAdapter = new CustomAdapter(getActivity(), itemCollection);
-                gridView.setAdapter(customAdapter);
-                gridView.setSelection(postionToMaintain);
+                if(itemCollection!=null) {
+                   // customAdapter = new CustomAdapter(context, itemCollection);
+                    itemCollection.addAll(allItems);
+                    //customAdapter.notifyDataSetChanged();
+                    int postionToMaintain = gridView.getFirstVisiblePosition();
+                    gridView.setAdapter(customAdapter);
+                    gridView.setSelection(postionToMaintain);
+                }
                 super.onPostExecute(aVoid);
             }
         }

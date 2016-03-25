@@ -4,6 +4,8 @@ package com.evernews.evernews;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -30,6 +32,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -46,6 +49,10 @@ import android.widget.Toast;
 
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.StandardExceptionParser;
+import com.google.android.gms.analytics.Tracker;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -59,11 +66,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
 
 public class Main extends AppCompatActivity implements SignUp.OnFragmentInteractionListener,PostArticle.OnFragmentInteractionListener {
-
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -75,6 +83,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public static SectionsPagerAdapter mSectionsPagerAdapter;
     public static String catListArray[][]=new String[10000][7];
     public static boolean validCategory=false;
+    public static boolean doThisflag=false;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -91,6 +100,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public static String NEWCHANNELADDED="NEWCHANNELADDED";
     public static String ARTICLEFONTSIZE="ARTICLEFONTSIZE";
     public static String APPLICATIONORIENTATION="APPLICATIONORIENTATION";
+    public static String ERASETABLE_1="ERASETABLE_1";
     public static String uniqueID="";
     SQLiteDatabase db;
     ShareDialog shareDialog;
@@ -101,6 +111,22 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     LinearLayout tabStrip;
     View virtualView;
     int mandetTab=10;
+
+
+    private Tracker mTracker;
+
+    /**
+     * Gets the default {@link Tracker} for this {@link Application}.
+     * @return tracker
+     */
+    synchronized public Tracker getDefaultTracker() {
+        if (mTracker == null) {
+            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+            // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
+            mTracker = analytics.newTracker(R.xml.app_tracker);
+        }
+        return mTracker;
+    }
 
 
     @Override
@@ -266,25 +292,55 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             startActivity(Intent.createChooser(sharingIntent, getResources().getString(R.string.share_using)));
         }catch (Exception e){e.printStackTrace();}
     }
-    public void handleUncaughtException (Thread thread, Throwable e)
-    {
-        e.printStackTrace(); // not all Android versions will print the stack trace automatically
-        String fullName = extractLogToFile();
-        if (fullName == null)
-            return;
-        else
-            shareByOther(fullName);
-        Intent intent = new Intent ();
-        intent.setAction ("com.evernews.SEND_LOG"); // see step 5.
-        intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK); // required when starting from Application
-        startActivity (intent);
-        System.exit(1); // kill off the crashed app
+
+    private Thread.UncaughtExceptionHandler handleAppCrash =
+            new Thread.UncaughtExceptionHandler() {
+                @Override
+                public void uncaughtException(Thread thread, Throwable ex) {
+                    Log.e("error", ex.toString());
+
+                    StringWriter errors = new StringWriter();
+                    ex.printStackTrace(new PrintWriter(errors));
+                    ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Error Log", errors.toString());
+                    clipboard.setPrimaryClip(clip);
+                    shareByOther(ex.toString());
+                    finish();
+                }
+            };
+
+    @Override
+    public void onResume() {
+        super.onResume();  // Always call the superclass method first
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+        mTracker.setScreenName("In Main Screen");
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        if(sharedpreferences.getBoolean(NEWCHANNELADDED,false)) {
+            Toast.makeText(context,"Channel change detected...Updating data Wait...",Toast.LENGTH_LONG).show();
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+            editor.putBoolean(Main.NEWCHANNELADDED, false);
+            editor.apply();
+            new GetNewsTask().execute();
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        //Thread.setDefaultUncaughtExceptionHandler(handleAppCrash);
+
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+        mTracker.setScreenName("In Main Screen");
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        // mInstance = this;
+        //AnalyticsTrackers.initialize(this);
+        //AnalyticsTrackers.getInstance().get(AnalyticsTrackers.Target.APP);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -318,13 +374,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
-
-
-
         mViewPager = (ViewPager) findViewById(R.id.container);
         //mViewPager.setOffscreenPageLimit(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
         tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
@@ -543,53 +595,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         return true;
     }
 
-   /* @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }*/
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        public static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-        ImageView artImage;
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView=null;
-            return rootView;
-        }
-    }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -607,7 +612,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
         @Override
         public Fragment getItem(int position) {
-
             //args.putInt(ARG_SECTION_NUMBER, position);
             ReusableFragment fragArray[]=new ReusableFragment[100];
             if(position<Initilization.addOnList.size()) {
@@ -692,20 +696,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             if (content != null) {
                 String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
                 parseResults(result);
-                new CountDownTimer(3000, 1000) {
-
-                    public void onTick(long millisUntilFinished) {
-                    }
-
-                    public void onFinish() {
-                        /*Intent i = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(i);*/
-
-                    }
-                }.start();
                 recreate();
-                progress.setVisibility(View.GONE);
                 super.onPostExecute(aVoid);
             }
         }
@@ -873,9 +864,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
 
                 if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                    Initilization.addOnList.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.add(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.add(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                    Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                 }
                 if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                     Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
@@ -891,7 +882,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         Initilization.addOnList.add(2, "EverYou");
         Initilization.addOnList.add(3, "YouView");
         Initilization.getAddOnListRSSID.add(2, "NULL");
-        Initilization.getAddOnListRSSID.add(3,"NULL");
+        Initilization.getAddOnListRSSID.add(3, "NULL");
         Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
         Initilization.addOnList.removeAll(Arrays.asList(null, ""));
         Initilization.addOnListTOCompare.clear();
