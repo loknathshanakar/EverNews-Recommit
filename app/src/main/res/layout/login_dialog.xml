@@ -55,6 +55,7 @@
         android:layout_margin="5dp"
         android:background="#55ACEE"
         android:text="Login via Twitter"
+        android:visibility="gone"
         android:textColor="#ffffffff" />
 
     <Button

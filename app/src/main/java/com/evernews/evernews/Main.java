@@ -81,7 +81,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     public static SectionsPagerAdapter mSectionsPagerAdapter;
-    public static String catListArray[][]=new String[10000][7];
+    public static String catListArray[][]=new String[10000][8];
     public static boolean validCategory=false;
     public static boolean doThisflag=false;
     /**
@@ -318,7 +318,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
 
         if(sharedpreferences.getBoolean(NEWCHANNELADDED,false)) {
-            Toast.makeText(context,"Channel change detected...Updating data Wait...",Toast.LENGTH_LONG).show();
+            Toast.makeText(context,"Channel change detected...Updating data please wait ait...",Toast.LENGTH_LONG).show();
             SharedPreferences.Editor editor = sharedpreferences.edit();
             editor.putBoolean(Main.NEWCHANNELADDED, false);
             editor.apply();
@@ -566,14 +566,19 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 return true;
 
             case R.id.action_refresh:
-                Toast.makeText(context,"Refresh in background has started...",Toast.LENGTH_LONG).show();
+                Toast.makeText(context,"Refresh in background has started...",Toast.LENGTH_SHORT).show();
                 new GetNewsTask().execute();
                 return true;
 
             case R.id.action_add:
-                Intent iii=new Intent(Main.this,AddTab.class);
-                iii.putExtra("CALLER", "MAIN");
-                startActivity(iii);
+                if(validCategory) {
+                    Intent iii = new Intent(Main.this, AddTab.class);
+                    iii.putExtra("CALLER", "MAIN");
+                    startActivity(iii);
+                }
+                else{
+                    Toast.makeText(context,"News channel list is loading please try again after some time",Toast.LENGTH_LONG).show();
+                }
                 return true;
 
             case R.id.action_search:
@@ -624,9 +629,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         //return SignUp.newInstance("SignUpInstance");
                     }
                 }
-                else if (position == 2) {
+                /*else if (position == 2) {
                     return YourView.newInstance("NewInstance","NewInstance");
-                }
+                }*/
                 ////fragArray[position] = ReusableFragment.newInstanceRe(position, Initilization.newsCategories[position][1]);
                 fragArray[position] = ReusableFragment.newInstanceRe(position, Initilization.addOnList.get(position));
                 return fragArray[position];
@@ -687,6 +692,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            progress.setVisibility(View.GONE);
             if (ExceptionCode > 0) {
                 if (ExceptionCode == 1)
                     Toast.makeText(getApplicationContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
@@ -936,21 +942,69 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
     public void parseResultsList(String response)
     {
-        XMLDOMParser parser = new XMLDOMParser();
-        InputStream stream = new ByteArrayInputStream(response.getBytes());
-        Document doc = parser.getDocument(stream);
-        NodeList nodeList = doc.getElementsByTagName("Table");
-
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Element e = (Element) nodeList.item(i);
-            Main.catListArray[i][0] = (parser.getValue(e, "RSSUrlId"));
-            Main.catListArray[i][1] = (parser.getValue(e, "RSSURL"));
-            Main.catListArray[i][2] = (parser.getValue(e, "RSSTitle"));
-            Main.catListArray[i][3] = (parser.getValue(e, "Detail"));
-            Main.catListArray[i][4] = (parser.getValue(e, "Comment"));
-            Main.catListArray[i][5] = (parser.getValue(e, "MediaHouse"));
-            Main.catListArray[i][6] = (parser.getValue(e, "NewsType"));
+        org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
+        try {
+            for (int i = 0; i < 15; i++) {
+                if (i == 0) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {
+                        Main.catListArray[index][0] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 1) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSURL")) {
+                        Main.catListArray[index][1] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 2) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSTitle")) {
+                        Main.catListArray[index][2] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 3) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("Image")) {
+                        Main.catListArray[index][3] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 4) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("Detail")) {
+                        Main.catListArray[index][4] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 5) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("Comment")) {
+                        Main.catListArray[index][5] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 6) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("MediaHouse")) {
+                        Main.catListArray[index][6] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 7) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsType")) {
+                        Main.catListArray[index][7] = e.text();
+                        index++;
+                    }
+                }
+            }
             validCategory=true;
+        }catch (Exception e){
+            validCategory=false;
         }
     }
 }

@@ -55,8 +55,8 @@ public class AddTabNewsPreview extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         final View add = inflater.inflate(R.layout.activity_add_tab_news_preview, container, false);
-        getDialog().setCancelable(true);
-        getDialog().setCanceledOnTouchOutside(true);
+        getDialog().setCancelable(false);
+        getDialog().setCanceledOnTouchOutside(false);
         final ProgressBar prog=(ProgressBar)add.findViewById(R.id.progressBar_ADD);
         final Button addBtn=(Button)add.findViewById(R.id.add_add);
         final TextView channelName=(TextView) add.findViewById(R.id.channel_name_add);

@@ -131,7 +131,7 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                     final String articleContent=post.getText().toString();
                     final String city=mCity.getText().toString();
                     final String extStorageDirectory = Environment.getExternalStorageDirectory().toString();
-                    if(articleTitle.length()<8 || articleContent.length()<20 || mCity.getText().toString().length()<=2){
+                    if(articleTitle.length()<8 || (articleContent.length()<20 && articleContent.length()>4000)  || mCity.getText().toString().length()<=2){
                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                         builder.setMessage("Article title or content does not meet the required specification")
                                 .setCancelable(false)

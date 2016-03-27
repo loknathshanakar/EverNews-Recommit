@@ -129,8 +129,8 @@ public class AddTab extends AppCompatActivity {
             this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
-        if(Main.validCategory==false)
-            new GetCategoryList().execute();
+        //if(Main.validCategory==false)
+            //new GetCategoryList().execute();
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
@@ -181,37 +181,6 @@ public class AddTab extends AppCompatActivity {
         tabStrip = (LinearLayout) tabLayout.getChildAt(0);
         int tabPos=tabLayout.getSelectedTabPosition();
         tabStrip.getChildAt(tabPos).setBackgroundResource(R.drawable.tab_color2);
-
-        /*for (int i = 0; i < Initilization.addOnList.size(); i++) {
-            int position = i;
-            if (i == 0) {
-                View v = View.inflate(context, R.layout.layout_tab_2, null);
-                TextView tvt = (TextView) v.findViewById(R.id.tab_tv_2);
-                tvt.setText("Featured");
-                tabLayout.getTabAt(i).setCustomView(v);
-                tabLayout.getTabAt(i).getCustomView().setBackgroundResource(R.drawable.tab_color2);
-                tabLayout.setSelectedTabIndicatorColor(Color.rgb(0, 0, 100));
-                tabLayout.setSelectedTabIndicatorHeight(5);
-            }
-            if (i == 1) {
-                View v = View.inflate(context, R.layout.layout_tab_3, null);
-                TextView tvt = (TextView) v.findViewById(R.id.tab_tv_3);
-                tvt.setText("Popular");
-                tabLayout.getTabAt(i).setCustomView(v);
-                tabLayout.getTabAt(i).getCustomView().setBackgroundResource(R.drawable.tab_color3);
-                tabLayout.setSelectedTabIndicatorColor(Color.rgb(0, 0, 100));
-                tabLayout.setSelectedTabIndicatorHeight(5);
-            }
-            if (i == 2) {
-                View v = View.inflate(context, R.layout.layout_tab_4, null);
-                TextView tvt = (TextView) v.findViewById(R.id.tab_tv_4);
-                tvt.setText("Category");
-                tabLayout.getTabAt(i).setCustomView(v);
-                tabLayout.getTabAt(i).getCustomView().setBackgroundResource(R.drawable.tab_color4);
-                tabLayout.setSelectedTabIndicatorColor(Color.rgb(0, 0, 100));
-                tabLayout.setSelectedTabIndicatorHeight(5);
-            }
-        }*/
     }
 
     @Override
@@ -406,21 +375,69 @@ public class AddTab extends AppCompatActivity {
 
     public void parseResultsList(String response)
     {
-        XMLDOMParser parser = new XMLDOMParser();
-        InputStream stream = new ByteArrayInputStream(response.getBytes());
-        Document doc = parser.getDocument(stream);
-        NodeList nodeList = doc.getElementsByTagName("Table");
-
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Element e = (Element) nodeList.item(i);
-            Main.catListArray[i][0] = (parser.getValue(e, "RSSUrlId"));
-            Main.catListArray[i][1] = (parser.getValue(e, "RSSURL"));
-            Main.catListArray[i][2] = (parser.getValue(e, "RSSTitle"));
-            Main.catListArray[i][3] = (parser.getValue(e, "Detail"));
-            Main.catListArray[i][4] = (parser.getValue(e, "Comment"));
-            Main.catListArray[i][5] = (parser.getValue(e, "MediaHouse"));
-            Main.catListArray[i][6] = (parser.getValue(e, "NewsType"));
+        org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
+        try {
+            for (int i = 0; i < 15; i++) {
+                if (i == 0) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {
+                        Main.catListArray[index][0] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 1) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSURL")) {
+                        Main.catListArray[index][1] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 2) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSTitle")) {
+                        Main.catListArray[index][2] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 3) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("Image")) {
+                        Main.catListArray[index][3] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 4) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("Detail")) {
+                        Main.catListArray[index][4] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 5) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("Comment")) {
+                        Main.catListArray[index][5] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 6) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("MediaHouse")) {
+                        Main.catListArray[index][6] = e.text();
+                        index++;
+                    }
+                }
+                if (i == 7) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsType")) {
+                        Main.catListArray[index][7] = e.text();
+                        index++;
+                    }
+                }
+            }
             Main.validCategory=true;
+        }catch (Exception e){
+            Main.validCategory=false;
         }
     }
 }

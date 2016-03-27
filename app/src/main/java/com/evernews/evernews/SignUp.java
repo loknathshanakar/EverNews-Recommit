@@ -141,7 +141,7 @@ public class SignUp extends Fragment implements View.OnClickListener{
             LoginManager.getInstance().registerCallback(callbackManager,
                     new FacebookCallback<LoginResult>() {
                         @Override
-                        public void onSuccess(LoginResult loginResult) {
+                        public void onSuccess(final LoginResult loginResult) {
                             accessToken = AccessToken.getCurrentAccessToken();
                             GraphRequest request = GraphRequest.newMeRequest(
                                     accessToken,
@@ -149,7 +149,7 @@ public class SignUp extends Fragment implements View.OnClickListener{
                                         @Override
                                         public void onCompleted(
                                                 JSONObject object,
-                                                GraphResponse response) {
+                                                final GraphResponse response) {
                                             try {
                                                 String emailL = object.getString("email") + "";
                                                 String fullNameL = object.getString("name") + "";
@@ -161,6 +161,118 @@ public class SignUp extends Fragment implements View.OnClickListener{
                                                     if (uName != null) uName.setText(emailL);
                                                     password.setEnabled(false);
                                                     comfirmpassword.setEnabled(false);
+                                                    if(loginbyWhich==1)
+                                                    {
+                                                        String usernameoremail = uName.getText().toString();
+                                                        String pass = pwd.getText().toString();
+                                                        String urlStr = "";
+                                                        if (loginbyWhich == 1)
+                                                            urlStr = "http://rssapi.psweb.in/everapi.asmx/ValidateSocialLogin?EmailorMobile=" + usernameoremail;
+                                                        else if (loginbyWhich == 0)
+                                                            urlStr = "http://rssapi.psweb.in/everapi.asmx/ValidateLogin?EmailorMobile=" + usernameoremail + "&Password=" + pass;
+                                                        URL url = null;
+                                                        try {
+                                                            url = new URL(urlStr);
+                                                            URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+                                                            url = uri.toURL();
+                                                        } catch (Exception e) {/****/}
+                                                        final String urlRequest = url.toString() + "";
+                                                        final ProgressDialog progressdlg;
+                                                        progressdlg = new ProgressDialog(getContext());
+                                                        progressdlg.setMessage("Connecting to server...");
+                                                        progressdlg.setTitle("Authentication");
+                                                        progressdlg.setCancelable(false);
+                                                        progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                                        progressdlg.setIndeterminate(true);
+                                                        progressdlg.show();
+                                                        if (isValidEmail(usernameoremail) || isValidNumber(usernameoremail)) {
+                                                            new AsyncTask<Void, Integer, String>() {
+                                                                int ExceptionCode = 0;
+                                                                String JsoupResopnse = "";
+
+                                                                @Override
+                                                                protected void onProgressUpdate(Integer... text) {
+                                                                    if (text[0] == 2)
+                                                                        progressdlg.setMessage("Connecting to server...");
+                                                                    if (text[0] == 3)
+                                                                        progressdlg.setMessage("Authenticating");
+                                                                }
+
+                                                                @Override
+                                                                protected String doInBackground(Void... params) {
+                                                                    try {
+                                                                        publishProgress(3);
+                                                                        JsoupResopnse = Jsoup.connect(urlRequest).timeout(Initilization.timeout - 5).ignoreContentType(true).execute().body();
+                                                                        int iIndex = JsoupResopnse.indexOf("\">") + 2;
+                                                                        int eIndex = JsoupResopnse.indexOf("</");
+                                                                        char jChar[] = JsoupResopnse.toCharArray();
+                                                                        if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex)
+                                                                            JsoupResopnse = String.copyValueOf(jChar, iIndex, (eIndex - iIndex));
+                                                                    } catch (IOException e) {
+                                                                        if (e instanceof SocketTimeoutException) {
+                                                                            ExceptionCode = 1;
+                                                                            return null;
+                                                                        }
+                                                                        if (e instanceof HttpStatusException) {
+                                                                            ExceptionCode = 2;
+                                                                            return null;
+                                                                        }
+                                                                    } finally {
+                                                                    }
+                                                                    return null;
+                                                                }
+
+                                                                @Override
+                                                                protected void onPostExecute(String link) {
+                                                                    int JsoupResp = -99;
+                                                                    try {
+                                                                        JsoupResp = Integer.valueOf(JsoupResopnse);
+                                                                    } catch (NumberFormatException e) {
+
+                                                                    }
+                                                                    if (ExceptionCode == 1)
+                                                                        Toast.makeText(getContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                                                                    else if (ExceptionCode == 2)
+                                                                        Toast.makeText(getContext(), "Some server related issue occurred..please try again later ", Toast.LENGTH_SHORT).show();
+                                                                    else if (JsoupResopnse.isEmpty())
+                                                                        Toast.makeText(getContext(), "Something went wrong..sorry", Toast.LENGTH_SHORT).show();
+                                                                    progressdlg.dismiss();
+
+                                                                    if (JsoupResopnse.compareTo("<int xmlns=\"http://tempuri.org/\">1</int>") == 0 || JsoupResp > 0) {
+                                                                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                                                                        editor.putBoolean(Main.LOGGEDIN, true);
+                                                                        editor.putBoolean(Main.ISREGISTRED, true);
+                                                                        editor.apply();
+                                                                        loginbyWhich = 0;
+                                                                        ProgressDialog progressdlg = new ProgressDialog(getContext());
+                                                                        progressdlg.setMessage("Restarting Application");
+                                                                        progressdlg.setTitle("Login done,Please Wait...");
+                                                                        progressdlg.setCancelable(false);
+                                                                        progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                                                        progressdlg.setIndeterminate(true);
+                                                                        progressdlg.show();
+
+                                                                        new CountDownTimer(3000, 1000) {
+
+                                                                            public void onTick(long millisUntilFinished) {
+                                                                            }
+
+                                                                            public void onFinish() {
+                                                                                Intent i = getContext().getPackageManager().getLaunchIntentForPackage(getContext().getPackageName());
+                                                                                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                                                startActivity(i);
+                                                                            }
+                                                                        }.start();
+                                                                    } else if (JsoupResopnse.compareTo("<int xmlns=\"http://tempuri.org/\">0</int>") == 0 || JsoupResp == 0) {
+                                                                        Toast.makeText(getContext(), "Email not registered", Toast.LENGTH_LONG).show();
+                                                                    }
+                                                                }
+                                                            }.execute();
+                                                        } else {
+                                                            Toast.makeText(getContext(), "Entered Email or Mobile number is not valid", Toast.LENGTH_LONG).show();
+                                                            progressdlg.dismiss();
+                                                        }
+                                                    }
                                                 }else{
                                                     Toast.makeText(getContext(), "Some details were not available in your facebook account", Toast.LENGTH_LONG).show();
                                                 }
@@ -411,6 +523,117 @@ public class SignUp extends Fragment implements View.OnClickListener{
                         uName.setText(email);
                         pwd.setHint("Password is not needed for Google login");
                         pwd.setEnabled(false);
+                        {
+                            String usernameoremail = uName.getText().toString();
+                            String pass = pwd.getText().toString();
+                            String urlStr = "";
+                            if (loginbyWhich == 1)
+                                urlStr = "http://rssapi.psweb.in/everapi.asmx/ValidateSocialLogin?EmailorMobile=" + usernameoremail;
+                            else if (loginbyWhich == 0)
+                                urlStr = "http://rssapi.psweb.in/everapi.asmx/ValidateLogin?EmailorMobile=" + usernameoremail + "&Password=" + pass;
+                            URL url = null;
+                            try {
+                                url = new URL(urlStr);
+                                URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+                                url = uri.toURL();
+                            } catch (Exception e) {/****/}
+                            final String urlRequest = url.toString() + "";
+                            final ProgressDialog progressdlg;
+                            progressdlg = new ProgressDialog(getContext());
+                            progressdlg.setMessage("Connecting to server...");
+                            progressdlg.setTitle("Authentication");
+                            progressdlg.setCancelable(false);
+                            progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                            progressdlg.setIndeterminate(true);
+                            progressdlg.show();
+                            if (isValidEmail(usernameoremail) || isValidNumber(usernameoremail)) {
+                                new AsyncTask<Void, Integer, String>() {
+                                    int ExceptionCode = 0;
+                                    String JsoupResopnse = "";
+
+                                    @Override
+                                    protected void onProgressUpdate(Integer... text) {
+                                        if (text[0] == 2)
+                                            progressdlg.setMessage("Connecting to server...");
+                                        if (text[0] == 3)
+                                            progressdlg.setMessage("Authenticating");
+                                    }
+
+                                    @Override
+                                    protected String doInBackground(Void... params) {
+                                        try {
+                                            publishProgress(3);
+                                            JsoupResopnse = Jsoup.connect(urlRequest).timeout(Initilization.timeout - 5).ignoreContentType(true).execute().body();
+                                            int iIndex = JsoupResopnse.indexOf("\">") + 2;
+                                            int eIndex = JsoupResopnse.indexOf("</");
+                                            char jChar[] = JsoupResopnse.toCharArray();
+                                            if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex)
+                                                JsoupResopnse = String.copyValueOf(jChar, iIndex, (eIndex - iIndex));
+                                        } catch (IOException e) {
+                                            if (e instanceof SocketTimeoutException) {
+                                                ExceptionCode = 1;
+                                                return null;
+                                            }
+                                            if (e instanceof HttpStatusException) {
+                                                ExceptionCode = 2;
+                                                return null;
+                                            }
+                                        } finally {
+                                        }
+                                        return null;
+                                    }
+
+                                    @Override
+                                    protected void onPostExecute(String link) {
+                                        int JsoupResp = -99;
+                                        try {
+                                            JsoupResp = Integer.valueOf(JsoupResopnse);
+                                        } catch (NumberFormatException e) {
+
+                                        }
+                                        if (ExceptionCode == 1)
+                                            Toast.makeText(getContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                                        else if (ExceptionCode == 2)
+                                            Toast.makeText(getContext(), "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+                                        else if (JsoupResopnse.isEmpty())
+                                            Toast.makeText(getContext(), "Something went wrong..sorry", Toast.LENGTH_SHORT).show();
+                                        progressdlg.dismiss();
+
+                                        if (JsoupResopnse.compareTo("<int xmlns=\"http://tempuri.org/\">1</int>") == 0 || JsoupResp > 0) {
+                                            SharedPreferences.Editor editor = sharedpreferences.edit();
+                                            editor.putBoolean(Main.LOGGEDIN, true);
+                                            editor.putBoolean(Main.ISREGISTRED, true);
+                                            editor.apply();
+                                            loginbyWhich = 0;
+                                            ProgressDialog progressdlg = new ProgressDialog(getContext());
+                                            progressdlg.setMessage("Restarting Application");
+                                            progressdlg.setTitle("Login done,Please Wait...");
+                                            progressdlg.setCancelable(false);
+                                            progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                            progressdlg.setIndeterminate(true);
+                                            progressdlg.show();
+
+                                            new CountDownTimer(3000, 1000) {
+
+                                                public void onTick(long millisUntilFinished) {
+                                                }
+
+                                                public void onFinish() {
+                                                    Intent i = getContext().getPackageManager().getLaunchIntentForPackage(getContext().getPackageName());
+                                                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                    startActivity(i);
+                                                }
+                                            }.start();
+                                        } else if (JsoupResopnse.compareTo("<int xmlns=\"http://tempuri.org/\">0</int>") == 0 || JsoupResp == 0) {
+                                            Toast.makeText(getContext(), "Email not registered", Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                }.execute();
+                            } else {
+                                Toast.makeText(getContext(), "Entered Email or Mobile number is not valid", Toast.LENGTH_LONG).show();
+                                progressdlg.dismiss();
+                            }
+                        }
                     }
                 });
 

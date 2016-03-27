@@ -66,7 +66,7 @@
             android:layout_margin="10dp"
             android:ems="10"
             android:gravity="top"
-            android:hint="Enter your article (Min of 20 characters)"
+            android:hint="Enter your article (20 to 4000 characters)"
             android:inputType="textMultiLine" />
 
         <Button

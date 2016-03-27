@@ -130,6 +130,7 @@
             android:layout_margin="15dp"
             android:background="#55ACEE"
             android:text="Register via Twitter"
+            android:visibility="gone"
             android:textColor="#ffffffff" />
 
         <Button

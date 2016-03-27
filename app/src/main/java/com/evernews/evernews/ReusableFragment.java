@@ -389,7 +389,7 @@ public class ReusableFragment extends Fragment {
         List<ItemObject> items = new ArrayList<>();
         int i= getArguments().getInt(TYPE_KEY);
         String tabName=getArguments().getString(TAB_NAME);
-        if(i==1 || i==2)
+        if(i==1)
             return items;
         if(i>=0) {
             for(int j=0;j<Initilization.resultArrayLength;j++){
@@ -889,6 +889,7 @@ public class ReusableFragment extends Fragment {
             refreshLayout.setRefreshing(false);
             refreshLayout.destroyDrawingCache();
             refreshLayout.clearAnimation();
+            Main.progress.setVisibility(View.GONE);
             if (ExceptionCode > 0) {
                 if (ExceptionCode == 1)
                     Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
