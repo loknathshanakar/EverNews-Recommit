@@ -31,6 +31,7 @@ import com.bumptech.glide.Glide;
 import org.jibble.simpleftp.SimpleFTP;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -201,7 +202,7 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                                 }
 
                                 Initilization.androidId = android.provider.Settings.Secure.getString(getContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                                int AppUserId=sharedpreferences.getInt("USERID", 0);
+                                final int AppUserId=sharedpreferences.getInt("USERID", 0);
                                 String urlStr="http://rssapi.psweb.in/everapi.asmx/NewPost?AppUserId="+AppUserId+"&Title="+articleTitle+"&Description="+articleContent+"&PostImage="+uniqueID+"&AndroidId="+Initilization.androidId+"&City="+city;
                                 URL url=null;
                                 try{
@@ -225,7 +226,20 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                                     protected String doInBackground(Void... params) {
                                         try {
                                             publishProgress(3);
-                                            JsoupResopnse = Jsoup.connect(urlRequest).timeout(Initilization.timeout-5).ignoreContentType(true).execute().body();
+                                            //JsoupResopnse = Jsoup.connect(urlRequest).timeout(Initilization.timeout-5).ignoreContentType(true).execute().body();
+                                            String Appuid=""+AppUserId;
+                                            JsoupResopnse = Jsoup.connect("http://rssapi.psweb.in/everapi.asmx/NewPost")
+                                                    .data("AppUserId", Appuid)
+                                                    .data("Title", articleTitle)
+                                                    .data("Description", articleContent)
+                                                    .data("PostImage", uniqueID)
+                                                    .data("AndroidId",Initilization.androidId)
+                                                    .data("City", city)
+                                                    .userAgent("Mozilla")
+                                                    .post().toString();
+                                            JsoupResopnse=JsoupResopnse.replace("\n","");
+                                            JsoupResopnse=JsoupResopnse.replace("\r","");
+                                            JsoupResopnse=JsoupResopnse.replace(" ","");
                                             int iIndex = JsoupResopnse.indexOf("\">") + 2;
                                             int eIndex = JsoupResopnse.indexOf("</");
                                             char jChar[] = JsoupResopnse.toCharArray();
@@ -240,11 +254,9 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                                                 ExceptionCode = 2;
                                                 return null;
                                             }
-                                        } finally {
-                                            /*File file = new File(extStorageDirectory, uniqueID + ".jpg");
-                                            file.delete();
-                                            uniqueID="";*/
+
                                         }
+                                        catch(Exception ee){/****/}
                                         return null;
                                     }
                                     @Override
@@ -252,8 +264,7 @@ public class PostArticle extends Fragment implements View.OnClickListener{
                                         int JsoupResp=-99;
                                         try{
                                             JsoupResp=Integer.valueOf(JsoupResopnse);
-                                        }catch (NumberFormatException e){
-                                        }
+                                        }catch (NumberFormatException e){/****/}
                                         if (ExceptionCode == 1)
                                             Toast.makeText(getContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
                                         else if (ExceptionCode == 2)

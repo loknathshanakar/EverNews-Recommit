@@ -319,9 +319,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
         if(sharedpreferences.getBoolean(NEWCHANNELADDED,false)) {
             Toast.makeText(context,"Channel change detected...Updating data please wait ait...",Toast.LENGTH_LONG).show();
-            SharedPreferences.Editor editor = sharedpreferences.edit();
-            editor.putBoolean(Main.NEWCHANNELADDED, false);
-            editor.apply();
             new GetNewsTask().execute();
         }
     }
@@ -337,10 +334,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         mTracker = application.getDefaultTracker();
         mTracker.setScreenName("In Main Screen");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-
-        // mInstance = this;
-        //AnalyticsTrackers.initialize(this);
-        //AnalyticsTrackers.getInstance().get(AnalyticsTrackers.Target.APP);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -527,6 +520,14 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                             Snackbar snackbar = Snackbar.make(v, "News removed successfully...", Snackbar.LENGTH_LONG);
                                                             progress.setVisibility(View.GONE);
                                                             snackbar.show();
+
+                                                            final ProgressDialog progressdlg = new ProgressDialog(context);
+                                                            progressdlg.setMessage("Updating Application");
+                                                            progressdlg.setTitle("Updating contents,Please Wait...");
+                                                            progressdlg.setCancelable(false);
+                                                            progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                                            progressdlg.setIndeterminate(true);
+                                                            progressdlg.show();
                                                             new CountDownTimer(1000, 1000) {
 
                                                                 public void onTick(long millisUntilFinished) {
@@ -534,8 +535,10 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
                                                                 public void onFinish() {
                                                                     recreate();
+                                                                    progressdlg.dismiss();
                                                                 }
                                                             }.start();
+
                                                         }
                                                         else{
                                                             Snackbar snackbar = Snackbar.make(v, "Sorry news could not be removed...", Snackbar.LENGTH_LONG);
@@ -567,7 +570,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
             case R.id.action_refresh:
                 Toast.makeText(context,"Refresh in background has started...",Toast.LENGTH_SHORT).show();
-                new GetNewsTask().execute();
+                new GetNewsTaskRestart().execute();
                 return true;
 
             case R.id.action_add:
@@ -655,6 +658,75 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
 
     //Non reuse lol
+    class GetNewsTaskRestart extends AsyncTask<Void,Void,Void>
+    {
+        String content;
+        int ExceptionCode=0;
+        @Override
+        protected void onPreExecute()
+        {
+            progress.setVisibility(View.VISIBLE);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params)
+        {
+            try
+            {
+                Initilization.androidId = android.provider.Settings.Secure.getString(getApplicationContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
+                content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+            }
+            catch(Exception e)
+            {
+                if(e instanceof SocketTimeoutException) {
+                    ExceptionCode=1;
+                    return null;
+                }
+                if(e instanceof HttpStatusException) {
+                    ExceptionCode=2;
+                    return null;
+                }
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progress.setVisibility(View.GONE);
+            if (ExceptionCode > 0) {
+                if (ExceptionCode == 1)
+                    Toast.makeText(getApplicationContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                if (ExceptionCode == 2)
+                    Toast.makeText(getApplicationContext(), "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+            }
+            if (content != null) {
+                final ProgressDialog progressdlg = new ProgressDialog(context);
+                progressdlg.setMessage("Updating Application");
+                progressdlg.setTitle("Updating contents,Please Wait...");
+                progressdlg.setCancelable(false);
+                progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressdlg.setIndeterminate(true);
+                progressdlg.show();
+                new CountDownTimer(1000, 1000) {
+
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    public void onFinish() {
+                        recreate();
+                        progressdlg.dismiss();
+                    }
+                }.start();
+                //super.onPostExecute(aVoid);
+            }
+        }
+    }
+
+
+    //Non reuse lol
     class GetNewsTask extends AsyncTask<Void,Void,Void>
     {
         String content;
@@ -702,8 +774,28 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             if (content != null) {
                 String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
                 parseResults(result);
-                recreate();
-                super.onPostExecute(aVoid);
+                SharedPreferences.Editor editor = sharedpreferences.edit();/**BROKEN**/
+                editor.putBoolean(Main.NEWCHANNELADDED, false);
+                editor.apply();
+
+                final ProgressDialog progressdlg = new ProgressDialog(context);
+                progressdlg.setMessage("Updating Application");
+                progressdlg.setTitle("Updating contents,Please Wait...");
+                progressdlg.setCancelable(false);
+                progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressdlg.setIndeterminate(true);
+                progressdlg.show();
+                new CountDownTimer(1000, 1000) {
+
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    public void onFinish() {
+                        recreate();
+                        progressdlg.dismiss();
+                    }
+                }.start();
+                //super.onPostExecute(aVoid);
             }
         }
     }

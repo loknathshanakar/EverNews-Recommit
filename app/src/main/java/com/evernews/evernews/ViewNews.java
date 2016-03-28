@@ -21,6 +21,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -36,9 +37,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.model.ShareOpenGraphAction;
+import com.facebook.share.model.ShareOpenGraphContent;
+import com.facebook.share.model.ShareOpenGraphObject;
 import com.facebook.share.widget.ShareDialog;
 
 import org.jsoup.Jsoup;
@@ -47,7 +55,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class ViewNews extends AppCompatActivity {
     int selectedColor = Color.rgb(125, 125, 125);
@@ -75,6 +86,8 @@ public class ViewNews extends AppCompatActivity {
     static String fullText="";
     static String rssTitle="";
     static String caller="";
+    static String newsImage="";
+    static String UUIDD="";
     static String finalHtml2 = "";
     public static FloatingActionButton fab_new;
     private final static float SCROLL_THRESHOLD = 10;
@@ -185,14 +198,14 @@ public class ViewNews extends AppCompatActivity {
                 mViewPager.setCurrentItem(tab.getPosition());
                 int x = tab.getPosition();
                 if ((x) == 0) {
-                    int i=x;
+                    int i = x;
                     tabStrip.getChildAt(i).setBackgroundResource(R.drawable.tab_color3);
                     tabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.tab_3_color));
                     virtualView.setBackgroundColor(getResources().getColor(R.color.tab_3_color));
                     tabLayout.setSelectedTabIndicatorHeight(4);
                 }
-                if ((x)== 1) {
-                    int i=x;
+                if ((x) == 1) {
+                    int i = x;
                     tabStrip.getChildAt(i).setBackgroundResource(R.drawable.tab_color5);
                     tabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.tab_5_color));
                     virtualView.setBackgroundColor(getResources().getColor(R.color.tab_5_color));
@@ -215,18 +228,48 @@ public class ViewNews extends AppCompatActivity {
         int tabPos=tabLayout.getSelectedTabPosition();
         tabStrip.getChildAt(tabPos).setBackgroundResource(R.drawable.tab_color3);
 
+
         Intent intent = getIntent();
         newsID = intent.getStringExtra("NEWS_ID")+"";
         newsLink = intent.getStringExtra("NEWS_LINK")+"";
         newsTitle = intent.getStringExtra("NEWS_TITLE")+"";
         fullText = intent.getStringExtra("FULL_TEXT")+"";
         rssTitle = intent.getStringExtra("RSS_TITLE")+"";
+        newsImage=intent.getStringExtra("NEWS_IMAGE")+"";
+        boolean cleanUUID=true;
+        {
+            char newsImagec[] = newsImage.toCharArray();
+            int iIndex=-1;
+            int eIndex=-1;
+            http://rss.psweb.in/NewsImages/8d3e1b1a-0eec-49fc-b796-56db971b46db.jpg
+            iIndex=newsImage.indexOf("s/")+2;
+            eIndex=newsImage.indexOf(".jpg");
+            if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
+                UUIDD = String.copyValueOf(newsImagec, iIndex, (eIndex - iIndex));
+                try{
+                    cleanUUID=true;
+                    UUID.fromString(UUIDD);
+                }
+                catch(IllegalArgumentException e){
+                    cleanUUID=false;
+                }
+                if(!Pattern.matches("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", UUIDD)) {
+                    //cleanUUID=false;
+                }
+            }
+        }
         caller=intent.getStringExtra("CALLER");
-        if(newsLink.length()>2 && newsTitle.length()>2 && fullText.length()>2 && rssTitle.length()>2){
+        if(newsLink.compareTo("NULL_WITH_IMAGE")==0)
+            mViewPager.setCurrentItem(1);
+        if(newsLink.length()>=0 && newsTitle.length()>=0 && fullText.length()>=0 && rssTitle.length()>=0){
             String title = "<h1><center>" + newsTitle + "</center></h1><br>";
             String source = "<h2><center>" + rssTitle + "</center></h2>";
+            if(newsLink.compareTo("NULL_WITH_IMAGE")==0 && cleanUUID)
+                 newsImage ="<br><br><center><img src=\""+newsImage+""+"\" alt=\"No Image\" style=\"max-width:400px;max-height:400px;\"></center><br><br>";
+            else
+                newsImage="";
             String news=fullText;
-            finalHtml = source + title + news;
+            finalHtml = source + title + newsImage + news;
             String Temp = finalHtml;
             Temp = Temp.replaceAll("(\r\n|\r|\n|\n\r)", "<br>");
             Temp = "<p>" + Temp + "</p>";
@@ -235,6 +278,7 @@ public class ViewNews extends AppCompatActivity {
 
         fab_new = (FloatingActionButton) findViewById(R.id.fab_view_news);
         fab_new.setVisibility(View.GONE);
+
         FacebookSdk.sdkInitialize(getApplicationContext());
         callbackManager = CallbackManager.Factory.create();
         shareDialog = new ShareDialog(this);
@@ -270,7 +314,9 @@ public class ViewNews extends AppCompatActivity {
                                     case 0:
                                         if (ShareDialog.canShow(ShareLinkContent.class)) {
                                             ShareLinkContent linkContent = new ShareLinkContent.Builder()
-                                                    .setContentTitle(newsTitle)
+                                                    .setRef(" #EVERNEWS")
+                                                    .setContentDescription("Shared via Evernews")
+                                                    .setContentTitle(newsTitle+" #EVERNEWS")
                                                     .setContentUrl(Uri.parse(newsLink))
                                                     .build();
                                             shareDialog.show(linkContent);
@@ -362,7 +408,7 @@ public class ViewNews extends AppCompatActivity {
         try {
             String tweetUrl =
                     String.format("https://twitter.com/intent/tweet?text=%s&url=%s",
-                            urlEncode(newsTitle), urlEncode(newsLink));
+                            urlEncode(newsTitle+" #EVERNEWS\n "), urlEncode(newsLink));
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(tweetUrl));
 
             List<ResolveInfo> matches = ((context == null ? context : context)).getPackageManager().queryIntentActivities(intent, 0);
@@ -551,9 +597,10 @@ public class ViewNews extends AppCompatActivity {
 
             if(getArguments().getInt(ARG_SECTION_NUMBER)==2)
             {
+                int x=0;
                 if(finalHtml!=null)
                     mWebView.loadData(finalHtml, "text/html", null);
-                if(fullText.length()<15) {
+                if(fullText.length()<2 && x==1) {
                     if (finalHtml.isEmpty()) {
                         new AsyncTask<Void, Void, String>() {
                             @Override

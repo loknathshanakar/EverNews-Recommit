@@ -25,7 +25,8 @@
             android:layout_below="@+id/title"
             android:layout_gravity="center_horizontal"
             android:layout_margin="5dp"
-            android:hint="Your city"
+            android:maxLength="20"
+            android:hint="Your city (Max 20 char)"
             android:spinnerMode="dropdown" />
 
         <EditText

@@ -148,8 +148,14 @@ public class ReusableFragment extends Fragment {
                 i.putExtra("NEWS_TITLE", itemCollection.get(position).getnewsTitle());
                 i.putExtra("RSS_TITLE", itemCollection.get(position).getnewsName());
                 i.putExtra("FULL_TEXT", itemCollection.get(position).getFullText());
-                i.putExtra("NEWS_LINK", itemCollection.get(position).getNewsURL());
-                if (itemCollection.get(position).getFullText() != null && itemCollection.get(position).getFullText().length() < 15) {
+                i.putExtra("NEWS_IMAGE",itemCollection.get(position).getNewsImage());
+                if(itemCollection.get(position).getCategoryID().compareTo("-1")==0)
+                    i.putExtra("NEWS_LINK", "NULL_WITH_IMAGE");
+                else
+                    i.putExtra("NEWS_LINK", itemCollection.get(position).getNewsURL());
+                int x=0;
+
+                if (itemCollection.get(position).getFullText() != null && itemCollection.get(position).getFullText().length() < 2 && x==1) {
                     new AsyncTask<Void, Void, String>() {
                         String newsLink = "";
                         String source = "", title = "", news = "";
@@ -251,7 +257,9 @@ public class ReusableFragment extends Fragment {
                                     case 0:
                                         if (ShareDialog.canShow(ShareLinkContent.class)) {
                                             ShareLinkContent linkContent = new ShareLinkContent.Builder()
-                                                    .setContentTitle(newsTitle)
+                                                    .setRef(" #EVERNEWS")
+                                                    .setContentDescription("Shared via Evernews")
+                                                    .setContentTitle(newsTitle + " #EVERNEWS")
                                                     .setContentUrl(Uri.parse(newsLink))
                                                     .build();
                                             shareDialog.show(linkContent);
@@ -791,7 +799,7 @@ public class ReusableFragment extends Fragment {
         try {
             String tweetUrl =
                     String.format("https://twitter.com/intent/tweet?text=%s&url=%s",
-                            urlEncode(newsTitle), urlEncode(newsLink));
+                            urlEncode(newsTitle+" #EVERNEWS\n "), urlEncode(newsLink));
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(tweetUrl));
 
             List<ResolveInfo> matches = ((getContext() == null ? getContext() : getContext())).getPackageManager().queryIntentActivities(intent, 0);
