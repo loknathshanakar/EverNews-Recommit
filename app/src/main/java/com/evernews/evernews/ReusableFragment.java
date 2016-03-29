@@ -165,7 +165,7 @@ public class ReusableFragment extends Fragment {
                     i.putExtra("NEWS_LINK", itemCollection.get(position).getNewsURL());
                 int x = 0;
 
-                if (itemCollection.get(position).getFullText() != null && itemCollection.get(position).getFullText().length() < 2 && x == 1) {
+                /*if (itemCollection.get(position).getFullText() != null && itemCollection.get(position).getFullText().length() < 2 && x == 1) {
                     new AsyncTask<Void, Void, String>() {
                         String newsLink = "";
                         String source = "", title = "", news = "";
@@ -226,7 +226,7 @@ public class ReusableFragment extends Fragment {
                             ViewNews.finalHtml = "<!DOCTYPE html> <html> <body>" + ViewNews.finalHtml + "</p> </body> </html>";
                         }
                     }.execute();
-                }
+                }*/
                 startActivity(i);
             }
         });

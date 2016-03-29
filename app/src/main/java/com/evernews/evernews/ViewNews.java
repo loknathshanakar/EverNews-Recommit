@@ -253,9 +253,6 @@ public class ViewNews extends AppCompatActivity {
                 catch(IllegalArgumentException e){
                     cleanUUID=false;
                 }
-                if(!Pattern.matches("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", UUIDD)) {
-                    cleanUUID=false;
-                }
             }
         }
         caller=intent.getStringExtra("CALLER");

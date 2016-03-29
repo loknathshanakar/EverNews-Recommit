@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -32,6 +34,11 @@ public class YouView extends AppCompatActivity {
         setContentView(R.layout.activity_you_view);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+
+        getSupportActionBar().setLogo(R.drawable.logo);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.go_backpng);
+        getSupportActionBar().setTitle("");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.logo);
 
@@ -39,9 +46,9 @@ public class YouView extends AppCompatActivity {
         fab_new.setVisibility(View.GONE);
 
         title1=(TextView)findViewById(R.id.source);
-        title1=(TextView)findViewById(R.id.source);
-        title1=(TextView)findViewById(R.id.source);
-        title1=(ImageView)findViewById(R.id.source);
+        title2=(TextView)findViewById(R.id.title);
+        content=(TextView)findViewById(R.id.content);
+        imageView=(ImageView)findViewById(R.id.imageView2);
 
         Intent intent = getIntent();
         newsID = intent.getStringExtra("NEWS_ID")+"";
@@ -62,11 +69,15 @@ public class YouView extends AppCompatActivity {
                 UUIDD = String.copyValueOf(newsImagec, iIndex, (eIndex - iIndex));
                 try{
                     cleanUUID=true;
-
                     UUID.fromString(UUIDD);
+                    title1.setText(rssTitle);
+                    title2.setText(newsTitle);
+                    content.setText(fullText);
+                    Glide.with(this).load(newsImage).into(imageView);
                 }
                 catch(IllegalArgumentException e){
                     cleanUUID=false;
+                    imageView.setVisibility(View.GONE);
                 }
             }
         }
