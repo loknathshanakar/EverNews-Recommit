@@ -69,7 +69,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.SocketTimeoutException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Random;
+import java.util.UUID;
 
 public class Main extends AppCompatActivity implements SignUp.OnFragmentInteractionListener,PostArticle.OnFragmentInteractionListener {
     /**
@@ -632,9 +637,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         //return SignUp.newInstance("SignUpInstance");
                     }
                 }
-                /*else if (position == 2) {
-                    return YourView.newInstance("NewInstance","NewInstance");
-                }*/
                 ////fragArray[position] = ReusableFragment.newInstanceRe(position, Initilization.newsCategories[position][1]);
                 fragArray[position] = ReusableFragment.newInstanceRe(position, Initilization.addOnList.get(position));
                 return fragArray[position];
@@ -954,27 +956,45 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             values.put(Initilization.CATEGORYORNEWS,Initilization.resultArray[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
+            if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
+                values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
+            else
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i+"MORERANDOMNESS"+ (UUID.randomUUID()));
+
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                long timeInMillisSinceEpoch = date.getTime();
+                long timeInSecondsSinceEpoch = timeInMillisSinceEpoch / (60);
+                values.put(Initilization.RESERVED_3, timeInSecondsSinceEpoch);
+            }catch(ParseException e){
+                values.put(Initilization.RESERVED_3,0);
+            }
+
             int cuDispOrder=0;
+
             currentNewsCategory=Initilization.resultArray[i][Initilization.DisplayOrder];
+
             db.insert(Initilization.TABLE_NAME, null, values);
+
             try {
                 Initilization.resultArrayLength++;
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
-
-                if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                    Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                }
-                if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
-                    Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
+                if (Initilization.resultArray[i][Initilization.Category].compareTo("YouView") != 0) {
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
+                        Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    }
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
+                        Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
+                    }
                 }
             }
             catch (Exception ee){/****/}
         }
-
         db.close(); // Closing database connection
 
         Initilization.addOnList.add(2, "EverYou");

@@ -1,7 +1,6 @@
 package com.evernews.evernews;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -13,13 +12,15 @@ import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
-
 import java.net.SocketTimeoutException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.UUID;
 
 public class Initilization extends AppCompatActivity {
     public static final int CategoryId = 0;
@@ -38,7 +39,7 @@ public class Initilization extends AppCompatActivity {
     public static final int FullText = 13;
     public static final int NewsUrl = 14;
     //Database related stuff
-    public static final String TABLE_NAME = "FULLNEWS";
+    public static final String TABLE_NAME = "FULLNEWS_REV1";
     public static final String CATEGORYID = "CategoryId";
     public static final String CATEGORYNAME = "Category";
     public static final String DISPLAYORDER = "DisplayOrder";
@@ -55,13 +56,14 @@ public class Initilization extends AppCompatActivity {
     public static final String CATEGORYORNEWS = "CategoryorNews";
     public static final String FULLTEXT = "FullText";
     public static final String NEWSURL = "NewsUrl";
-    public static final String RESERVED_2 = "RESERVED_2";
-    public static final String RESERVED_3 = "RESERVED_3";
+    public static final String RESERVED_2 = "RESERVED_2";   /**USED FOR NEWS ID**/
+    public static final String RESERVED_3 = "RESERVED_3";   /**USED FOR LONG TIME**/
     public static final String RESERVED_4 = "RESERVED_4";
+    public static final String col[] = {CATEGORYID, CATEGORYNAME, DISPLAYORDER, RSSTITLE, RSSURL_DB, RSSURLID, NEWSID, NEWSTITLE, SUMMARY, NEWSIMAGE, NEWSDATE, NEWSDISPLAYORDER, CATEGORYORNEWS, FULLTEXT, NEWSURL,RESERVED_2,RESERVED_3};
     public static long numRows=0;
     public static String SQL_CREATE_ENTRIES ="";
     public static String DB_PATH = "/data/data/com.evernews.evernews/databases/";
-    public static String DB_NAME = TABLE_NAME;
+    public static String DB_NAME = "FULLNEWS_REV1";
     public static String androidId="";
     public static int timeout = 30000;
     public static String resultArray[][]=new String[10000][15];
@@ -79,26 +81,9 @@ public class Initilization extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initilization);
         getSupportActionBar().hide();
-        sharedpreferences = getApplicationContext().getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
-        if (sharedpreferences.getInt(Main.ERASETABLE_1, 0)!=123) {
-            try {
-                String path = DB_PATH + DB_NAME;
-                db = SQLiteDatabase.openDatabase(path, null, 0);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-                //Toast.makeText(this, "Previous table erased", Toast.LENGTH_LONG).show();
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                editor.putInt(Main.ERASETABLE_1, 123);
-                editor.apply();
-            } catch (Exception e) {
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                editor.putInt(Main.ERASETABLE_1, 123);
-                editor.apply();
-            }finally {
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                editor.putInt(Main.ERASETABLE_1, 123);
-                editor.apply();
-            }
-        }
+        /*String path = DB_PATH + DB_NAME;
+        db = SQLiteDatabase.openDatabase(path, null, 0);
+        db.execSQL("DROP TABLE IF EXISTS FULLNEWS");*/
         new GetNewsTask().execute();
     }
 
@@ -258,28 +243,40 @@ public class Initilization extends AppCompatActivity {
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
             else
-                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i);
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i+"MORERANDOMNESS"+ (UUID.randomUUID()));
+
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                long timeInMillisSinceEpoch = date.getTime();
+                long timeInSecondsSinceEpoch = timeInMillisSinceEpoch / (60);
+                values.put(Initilization.RESERVED_3, timeInSecondsSinceEpoch);
+            }catch(ParseException e){
+                values.put(Initilization.RESERVED_3,0);
+            }
 
             int cuDispOrder = 0;
+
             currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
+
             db.insert(Initilization.TABLE_NAME, null, values);
             try {
                 Initilization.resultArrayLength++;
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
-
-                if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                    Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                }
-                if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
-                    Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
+                if(Initilization.resultArray[i][Initilization.Category].compareTo("YouView")!=0) {
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
+                        Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    }
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
+                        Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
+                    }
                 }
             } catch (Exception ee) {/****/}
         }
-
         db.close(); // Closing database connection
 
         Initilization.addOnList.add(2, "EverYou");
@@ -306,8 +303,7 @@ public class Initilization extends AppCompatActivity {
         ContentValues values = new ContentValues();
         String path = DB_PATH + DB_NAME;
         db = SQLiteDatabase.openDatabase(path, null, 0);
-        String col[] = {CATEGORYID, CATEGORYNAME, DISPLAYORDER, RSSTITLE, RSSURL_DB, RSSURLID, NEWSID, NEWSTITLE, SUMMARY, NEWSIMAGE, NEWSDATE, NEWSDISPLAYORDER, CATEGORYORNEWS, FULLTEXT, NEWSURL};
-        Cursor cur = db.query(TABLE_NAME, col, null, null, null, null, null);
+        Cursor cur = db.query(TABLE_NAME, Initilization.col, null, null, null, null, RESERVED_3+" DESC");
         Integer num = cur.getCount();
         setTitle(Integer.toString(num));
         Initilization.addOnList.clear();
@@ -338,28 +334,30 @@ public class Initilization extends AppCompatActivity {
             Initilization.resultArray[i][Initilization.CategoryorNews] = cur.getString(CategoryorNews);
             Initilization.resultArray[i][Initilization.FullText] = cur.getString(FullText);
             Initilization.resultArray[i][Initilization.NewsUrl] = cur.getString(NewsUrl);
+
             currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
 
             int cuDispOrder = 0;
             try {
                 Initilization.resultArrayLength++;
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
-                if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                    Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                }
-                if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
-                    Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                    Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
-                    Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
+                if(Initilization.resultArray[i][Initilization.Category].compareTo("YouView")!=0) {
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
+                        Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                    }
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
+                        Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
+                    }
                 }
                 try {
                     cur.moveToNext();
                 } catch (Exception e) {/*Index out of bounds*/}
             } catch (Exception ee) {/****/}
         }
-
         db.close(); // Closing database connection
 
         Initilization.addOnList.add(2, "EverYou");
@@ -405,10 +403,17 @@ public class Initilization extends AppCompatActivity {
                     + " TEXT , " + CATEGORYORNEWS + " TEXT , " + FULLTEXT
                     + " TEXT , " + NEWSURL
                     + " TEXT , " + RESERVED_2 + " TEXT UNIQUE , " + RESERVED_3
-                    + " TEXT , " + RESERVED_4 + " TEXT );";
+                    + " LONG , " + RESERVED_4 + " TEXT );";
 
             db = openOrCreateDatabase(TABLE_NAME, MODE_PRIVATE, null);
             db.execSQL(SQL_CREATE_ENTRIES);
+           // db.rawQuery("SELECT * FROM '"+TABLE_NAME+"' ORDER BY '"+RESERVED_3+"' ASC;", new String[] {});
+            Cursor oldestDateCursor = db.query(Initilization.TABLE_NAME, null, null, null, null, null, RESERVED_3+" ASC LIMIT 0");
+            if (oldestDateCursor.moveToFirst())
+            {
+                String date = oldestDateCursor.getColumnName(oldestDateCursor.getColumnIndex("date_column"));
+            }
+            oldestDateCursor.close();
             numRows = DatabaseUtils.queryNumEntries(db, TABLE_NAME);
             if (numRows < 50) {
                 try {

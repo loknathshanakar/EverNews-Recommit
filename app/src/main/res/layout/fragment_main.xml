@@ -15,11 +15,11 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/rl_od"
             android:gravity="top"
-            android:horizontalSpacing="4dp"
+            android:background="#F2F2F2"
+            android:horizontalSpacing="1dp"
+            android:verticalSpacing="1dp"
             android:numColumns="2"
-            android:padding="4dp"
-            android:scrollbars="vertical"
-            android:verticalSpacing="4dp" />
+            android:scrollbars="vertical" />
 
         <RelativeLayout
             android:id="@+id/rl_od"

@@ -8,7 +8,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -49,6 +51,8 @@ public class Search extends AppCompatActivity {
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.go_backpng);
         context=this;
         query=(TextView)findViewById(R.id.edit_query);
+        //query.setImeActionLabel("Search", KeyEvent.KEYCODE_SEARCH);
+
         search=(ImageButton)findViewById(R.id.search_button);
         gridView=(GridView)findViewById(R.id.gridview_search);
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
@@ -57,6 +61,26 @@ public class Search extends AppCompatActivity {
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             gridView.setNumColumns(2);
         }
+
+        query.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    queryString=query.getText().toString();
+                    if(!queryString.isEmpty()){
+                        new searchData().execute();
+                        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(query.getWindowToken(), 0);
+                    }
+                    else{
+                        Toast.makeText(context,"Keyword cannot be empty",Toast.LENGTH_LONG).show();
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -43,11 +43,17 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 
 public class ReusableFragment extends Fragment {
     private static final String TYPE_KEY = "type";
@@ -123,7 +129,7 @@ public class ReusableFragment extends Fragment {
         }
         List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
         customAdapter = new CustomAdapter(context, itemCollection);
-        itemCollection.addAll(allItems);
+        itemCollection.addAll(0,allItems);
         //customAdapter.notifyDataSetChanged();
         int postionToMaintain= gridView.getFirstVisiblePosition();
         gridView.setAdapter(customAdapter);
@@ -139,7 +145,11 @@ public class ReusableFragment extends Fragment {
                     } catch (Exception e) {
                     }
                 }
-                final Intent i = new Intent(getActivity().getBaseContext(), ViewNews.class);
+
+                Intent i = new Intent(getActivity().getBaseContext(), ViewNews.class);
+                if (itemCollection.get(position).getCategoryID().compareTo("-1") == 0)
+                    i = new Intent(getActivity().getBaseContext(), YouView.class);
+
                 if (newsID == null)
                     i.putExtra("NEWS_ID", newsID + "");
                 else
@@ -148,14 +158,14 @@ public class ReusableFragment extends Fragment {
                 i.putExtra("NEWS_TITLE", itemCollection.get(position).getnewsTitle());
                 i.putExtra("RSS_TITLE", itemCollection.get(position).getnewsName());
                 i.putExtra("FULL_TEXT", itemCollection.get(position).getFullText());
-                i.putExtra("NEWS_IMAGE",itemCollection.get(position).getNewsImage());
-                if(itemCollection.get(position).getCategoryID().compareTo("-1")==0)
+                i.putExtra("NEWS_IMAGE", itemCollection.get(position).getNewsImage());
+                if (itemCollection.get(position).getCategoryID().compareTo("-1") == 0)
                     i.putExtra("NEWS_LINK", "NULL_WITH_IMAGE");
                 else
                     i.putExtra("NEWS_LINK", itemCollection.get(position).getNewsURL());
-                int x=0;
+                int x = 0;
 
-                if (itemCollection.get(position).getFullText() != null && itemCollection.get(position).getFullText().length() < 2 && x==1) {
+                if (itemCollection.get(position).getFullText() != null && itemCollection.get(position).getFullText().length() < 2 && x == 1) {
                     new AsyncTask<Void, Void, String>() {
                         String newsLink = "";
                         String source = "", title = "", news = "";
@@ -227,8 +237,8 @@ public class ReusableFragment extends Fragment {
         gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                newsTitle=itemCollection.get(position).getnewsTitle();
-                newsLink=itemCollection.get(position).getNewsURL();
+                newsTitle = itemCollection.get(position).getnewsTitle();
+                newsLink = itemCollection.get(position).getNewsURL();
                 final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(Uri.parse("https://developers.facebook.com")).build();
                 AlertDialog.Builder builderSingle = new AlertDialog.Builder(getContext());
                 builderSingle.setIcon(R.drawable.ic_launcher);
@@ -280,13 +290,14 @@ public class ReusableFragment extends Fragment {
                                         clipboard.setPrimaryClip(clip);
                                         Toast.makeText(getContext() == null ? context : context, "Link copied to clipboard", Toast.LENGTH_SHORT).show();
                                         break;
-                                    case 5:shareByOther();
+                                    case 5:
+                                        shareByOther();
                                         break;
                                 }
                             }
                         });
                 builderSingle.show();
-                return(true);
+                return (true);
             }
         });
 
@@ -395,6 +406,8 @@ public class ReusableFragment extends Fragment {
 
     private List<ItemObject> getDefaultNews(int ii){
         List<ItemObject> items = new ArrayList<>();
+        items.add(new ItemObject("", "", "", "", "","",""));
+        ItemObject prevObj=new ItemObject("", "", "", "", "","","");
         int i= getArguments().getInt(TYPE_KEY);
         String tabName=getArguments().getString(TAB_NAME);
         if(i==1)
@@ -415,17 +428,39 @@ public class ReusableFragment extends Fragment {
                         String CategoryId = Initilization.resultArray[j][Initilization.CategoryId];
                         String FullText = Initilization.resultArray[j][Initilization.FullText];
                         String NewsUrl = Initilization.resultArray[j][Initilization.NewsUrl];
-                        items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId,FullText,NewsUrl));
+
+                        /*if(!items.contains(prevObj)){
+                            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
+                        }*/
+                        //prevObj=new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl);
+                        for(int x=0;x<items.size();x++) {
+                            if (items.get(x).getNewsID().compareTo(NewsId)==0) {
+                                //items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
+                                break;
+                            }
+                            else{
+                                if(x==items.size()-1) {
+                                    items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
+                                    break;
+                                }
+                                continue;
+                            }
+                        }
                         refrenceCounter++;
                         //Need to implement a filter to prevent re adding of data
                         for (int k = 0; k < itemCollection.size(); k++) {
-                            if (itemCollection.get(k).getNewsID().compareTo(NewsId) == 0 && items.size()-1>=0) {
+                            if (itemCollection.get(k).getNewsID().compareTo(NewsId) == 0 && items.size()-1>=0 ) {
                                 items.remove(items.size() - 1);
                             }
                         }
                     }
             }
         }
+        Set<ItemObject> hs = new LinkedHashSet<>();
+        hs.addAll(items);
+        items.clear();
+        items.addAll(hs);
+        items.remove(0);
         return items;
     }
 
@@ -586,10 +621,22 @@ public class ReusableFragment extends Fragment {
                 if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                     values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
                 else
-                    values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i);
+                    values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i+"MORERANDOMNESS"+ (UUID.randomUUID()));
+
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                    Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                    long timeInMillisSinceEpoch = date.getTime();
+                    long timeInSecondsSinceEpoch = timeInMillisSinceEpoch / (60);
+                    values.put(Initilization.RESERVED_3, timeInSecondsSinceEpoch);
+                }catch(ParseException e){
+                    values.put(Initilization.RESERVED_3,0);
+                }
 
                 int cuDispOrder = 0;
+
                 currentNewsCategory=Initilization.resultArray[i][Initilization.DisplayOrder];
+
                 db.insert(Initilization.TABLE_NAME, null, values);
                 try {
                     Initilization.resultArrayLength++;
@@ -606,7 +653,6 @@ public class ReusableFragment extends Fragment {
                     }
                 } catch (Exception ee) {/****/}
             }
-
             db.close(); // Closing database connection
 
             //Initilization.addOnList.add(2, "EverYou");
@@ -770,7 +816,18 @@ public class ReusableFragment extends Fragment {
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, tempResults[i][Initilization.NewsId]);
             else
-                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i);
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i+"MORERANDOMNESS"+ (UUID.randomUUID()));
+
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                Date date = sdf.parse(tempResults[i][Initilization.NewsDate]);
+                long timeInMillisSinceEpoch = date.getTime();
+                long timeInSecondsSinceEpoch = timeInMillisSinceEpoch / (60);
+                values.put(Initilization.RESERVED_3, timeInSecondsSinceEpoch);
+            }catch(ParseException e){
+                values.put(Initilization.RESERVED_3,0);
+            }
+
             db.insert(Initilization.TABLE_NAME, null, values);
 
             NewsImage=tempResults[i][Initilization.NewsImage];
@@ -914,7 +971,7 @@ public class ReusableFragment extends Fragment {
                 /**CAUTION HERE**/
                 if(itemCollection!=null) {
                    // customAdapter = new CustomAdapter(context, itemCollection);
-                    itemCollection.addAll(allItems);
+                    itemCollection.addAll(0,allItems);
                     //customAdapter.notifyDataSetChanged();
                     int postionToMaintain = gridView.getFirstVisiblePosition();
                     gridView.setAdapter(customAdapter);
