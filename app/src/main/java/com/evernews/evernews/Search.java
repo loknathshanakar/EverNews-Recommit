@@ -277,7 +277,8 @@ public class Search extends AppCompatActivity {
             String CATID = (parser.getValue(e, "RSSUrlId"));
             String FullText = (parser.getValue(e, "FullText"));
             String NewsURL = (parser.getValue(e, "NewsURL"));
-            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId,CATID,FullText,NewsURL));
+            String Summary = (parser.getValue(e, "Summary"));
+            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId,CATID,FullText,NewsURL,Summary));
         }
         return (items);
     }

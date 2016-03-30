@@ -155,6 +155,7 @@ public class ReusableFragment extends Fragment {
                 else
                     i.putExtra("NEWS_ID", newsID);
                 i.putExtra("CALLER", "MAIN");
+                i.putExtra("SUMMARY",itemCollection.get(position).getnewsSummary());
                 i.putExtra("NEWS_TITLE", itemCollection.get(position).getnewsTitle());
                 i.putExtra("RSS_TITLE", itemCollection.get(position).getnewsName());
                 i.putExtra("FULL_TEXT", itemCollection.get(position).getFullText());
@@ -237,6 +238,8 @@ public class ReusableFragment extends Fragment {
         gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                if(itemCollection.get(position).getCategoryID().compareTo("-1") == 0)
+                    return(false);
                 newsTitle = itemCollection.get(position).getnewsTitle();
                 newsLink = itemCollection.get(position).getNewsURL();
                 final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(Uri.parse("https://developers.facebook.com")).build();
@@ -406,8 +409,8 @@ public class ReusableFragment extends Fragment {
 
     private List<ItemObject> getDefaultNews(int ii){
         List<ItemObject> items = new ArrayList<>();
-        items.add(new ItemObject("", "", "", "", "","",""));
-        ItemObject prevObj=new ItemObject("", "", "", "", "","","");
+        items.add(new ItemObject("", "", "", "", "","","",""));
+        ItemObject prevObj=new ItemObject("", "", "", "", "","","","");
         int i= getArguments().getInt(TYPE_KEY);
         String tabName=getArguments().getString(TAB_NAME);
         if(i==1)
@@ -428,24 +431,24 @@ public class ReusableFragment extends Fragment {
                         String CategoryId = Initilization.resultArray[j][Initilization.CategoryId];
                         String FullText = Initilization.resultArray[j][Initilization.FullText];
                         String NewsUrl = Initilization.resultArray[j][Initilization.NewsUrl];
-
+                        String Summary = Initilization.resultArray[j][Initilization.Summary];
+                        items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,Summary));
                         /*if(!items.contains(prevObj)){
                             items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
                         }*/
                         //prevObj=new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl);
-                        for(int x=0;x<items.size();x++) {
+                       /* for(int x=0;x<items.size();x++) {
                             if (items.get(x).getNewsID().compareTo(NewsId)==0) {
-                                //items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
                                 break;
                             }
                             else{
                                 if(x==items.size()-1) {
-                                    items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
+                                    items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,Summary));
                                     break;
                                 }
                                 continue;
                             }
-                        }
+                        }*/
                         refrenceCounter++;
                         //Need to implement a filter to prevent re adding of data
                         for (int k = 0; k < itemCollection.size(); k++) {
@@ -621,7 +624,7 @@ public class ReusableFragment extends Fragment {
                 if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                     values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
                 else
-                    values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i+"MORERANDOMNESS"+ (UUID.randomUUID()));
+                    values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+Initilization.resultArray[i][Initilization.NewsId]);
 
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
@@ -671,7 +674,7 @@ public class ReusableFragment extends Fragment {
     public void parseResults(String response)
     {
         int tabName=getArguments().getInt(TYPE_KEY);
-        String NewsImage="",NewsTitle="",RSSTitle="",NewsId="",CategoryId="",FullText="",NewsUrl="";
+        String NewsImage="",NewsTitle="",RSSTitle="",NewsId="",CategoryId="",FullText="",NewsUrl="",NewsSummary="";
         ContentValues values = new ContentValues();
         String path=Initilization.DB_PATH+Initilization.DB_NAME;
         SQLiteDatabase db= SQLiteDatabase.openDatabase(path, null, 0);
@@ -682,7 +685,7 @@ public class ReusableFragment extends Fragment {
             }
         }
         asyncitems.clear();
-        asyncitems.add(new ItemObject(tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+""));
+        asyncitems.add(new ItemObject(tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"",tabName+""));
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
         for(int i=0;i<15;i++)
         {
@@ -816,7 +819,7 @@ public class ReusableFragment extends Fragment {
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, tempResults[i][Initilization.NewsId]);
             else
-                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i+"MORERANDOMNESS"+ (UUID.randomUUID()));
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+tempResults[i][Initilization.NewsId]);
 
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
@@ -837,7 +840,8 @@ public class ReusableFragment extends Fragment {
             CategoryId=tempResults[i][Initilization.CategoryId];
             FullText=tempResults[i][Initilization.FullText];
             NewsUrl=tempResults[i][Initilization.NewsUrl];
-            asyncitems.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
+            NewsSummary=tempResults[i][Initilization.Summary];
+            asyncitems.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,NewsSummary));
             for(int k=0;k<itemCollection.size();k++){
                 if((itemCollection.get(k).getNewsID().contains(NewsId) && asyncitems.size()-1>=0 )|| (itemCollection.get(k).getnewsTitle().compareTo(NewsTitle)==0&&asyncitems.size()-1>=0)){
                     asyncitems.remove(asyncitems.size()-1);
@@ -974,7 +978,7 @@ public class ReusableFragment extends Fragment {
                     itemCollection.addAll(0,allItems);
                     //customAdapter.notifyDataSetChanged();
                     int postionToMaintain = gridView.getFirstVisiblePosition();
-                    gridView.setAdapter(customAdapter);
+                    //gridView.setAdapter(customAdapter);
                     gridView.setSelection(postionToMaintain);
                 }
                 super.onPostExecute(aVoid);

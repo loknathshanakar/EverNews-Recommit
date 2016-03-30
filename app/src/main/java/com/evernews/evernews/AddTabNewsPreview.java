@@ -103,9 +103,10 @@ public class AddTabNewsPreview extends DialogFragment {
                         String CATID = "No news avaliable";
                         String fullText="NA";
                         String newsLink="NA";
+                        String Summary="NA";
                         channelName.setText("Not avaliable");
                         channelMeta.setText("Not avaliable");
-                        items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CATID,fullText,newsLink));
+                        items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CATID,fullText,newsLink,Summary));
                         CustomAdapter customAdapter = new CustomAdapter(getActivity(), items);
                         gridView.setAdapter(customAdapter);
                     }
@@ -208,7 +209,7 @@ public class AddTabNewsPreview extends DialogFragment {
                 String RSSTitle = (parser.getValue(e, "RSSTitle"));
                 String NewsId = (parser.getValue(e, "NewsId"));
                 String CATID = (parser.getValue(e, "RSSUrlId"));
-                items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CATID,"FullText","NewsLink"));
+                items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CATID,"FullText","NewsLink","Summary"));
             }
         }
         return (items);
@@ -223,7 +224,7 @@ public class AddTabNewsPreview extends DialogFragment {
             String RSSTitle = "Updating";
             String NewsId = "Updating";
             String CATID = "Updating";
-            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId,CATID,"FullText","NewsLink"));
+            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId,CATID,"FullText","NewsLink","Summary"));
         }
         return (items);
     }

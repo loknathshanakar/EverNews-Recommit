@@ -959,7 +959,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
             else
-                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+i+"MORERANDOMNESS"+ (UUID.randomUUID()));
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+Initilization.resultArray[i][Initilization.NewsId]);
 
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");

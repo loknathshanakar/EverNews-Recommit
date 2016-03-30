@@ -1,7 +1,7 @@
 package com.evernews.evernews;
 
 
-public class ItemObject {
+public class ItemObjectS {
 
     private String newsImage;
     private String newsTitle;
@@ -12,7 +12,7 @@ public class ItemObject {
     private String newsURL;
     private String newsSummary;
 
-    public ItemObject(String newsImage, String newsTitle, String newsName,String newsID,String categoryID,String fullText,String newsURL ,String newsSummary) {
+    public ItemObjectS(String newsImage, String newsTitle, String newsName,String newsID,String categoryID,String fullText,String newsURL ,String newsSummary) {
         this.newsImage = newsImage;
         this.newsTitle = newsTitle;
         this.newsName = newsName;
