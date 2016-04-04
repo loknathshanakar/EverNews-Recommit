@@ -375,6 +375,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         mViewPager = (ViewPager) findViewById(R.id.container);
         //mViewPager.setOffscreenPageLimit(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setPageTransformer(true, new DepthPageTransformer());
+
+
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
         tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
@@ -776,9 +779,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             if (content != null) {
                 String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
                 parseResults(result);
-                SharedPreferences.Editor editor = sharedpreferences.edit();/**BROKEN**/
-                editor.putBoolean(Main.NEWCHANNELADDED, false);
-                editor.apply();
 
                 final ProgressDialog progressdlg = new ProgressDialog(context);
                 progressdlg.setMessage("Updating Application");
@@ -787,14 +787,17 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressdlg.setIndeterminate(true);
                 progressdlg.show();
+                SharedPreferences.Editor editor = sharedpreferences.edit();/**BROKEN**/
+                editor.putBoolean(Main.NEWCHANNELADDED, false);
+                editor.apply();
                 new CountDownTimer(1000, 1000) {
-
                     public void onTick(long millisUntilFinished) {
                     }
 
                     public void onFinish() {
-                        recreate();
-                        progressdlg.dismiss();
+                        Intent i = context.getPackageManager().getLaunchIntentForPackage( context.getPackageName() );
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(i);
                     }
                 }.start();
                 //super.onPostExecute(aVoid);
