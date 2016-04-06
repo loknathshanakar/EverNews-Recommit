@@ -47,6 +47,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ToxicBakery.viewpager.transforms.CubeInTransformer;
+import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.analytics.GoogleAnalytics;
@@ -331,6 +333,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.main);
 
         //Thread.setDefaultUncaughtExceptionHandler(handleAppCrash);
@@ -375,7 +378,8 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         mViewPager = (ViewPager) findViewById(R.id.container);
         //mViewPager.setOffscreenPageLimit(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setPageTransformer(true, new DepthPageTransformer());
+
+        mViewPager.setPageTransformer(true, new CubeOutTransformer());
 
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);

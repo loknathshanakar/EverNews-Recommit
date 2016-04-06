@@ -53,4 +53,6 @@
 
 
     <dimen name="tab_bend_radius">5dp</dimen>
+
+    <dimen name="touch_start_padding">5dp</dimen>
 </resources>
