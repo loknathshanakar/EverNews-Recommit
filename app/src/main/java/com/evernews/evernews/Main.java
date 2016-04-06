@@ -108,6 +108,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public static String ARTICLEFONTSIZE="ARTICLEFONTSIZE";
     public static String APPLICATIONORIENTATION="APPLICATIONORIENTATION";
     public static String ERASETABLE_1="ERASETABLE_1";
+    public static String ANIMATIONTYPE="ANIMATIONTYPE";
     public static String uniqueID="";
     SQLiteDatabase db;
     ShareDialog shareDialog;

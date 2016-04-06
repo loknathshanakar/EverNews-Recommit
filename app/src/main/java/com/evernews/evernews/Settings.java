@@ -26,9 +26,9 @@ import android.widget.Toast;
 import java.util.List;
 
 public class Settings extends AppCompatActivity {
-    TextView newsChannel, newsOrientationType,newsOrientation, newsFont, newsSupport, newsReview, newsRecomend, newsPolicy, newsTerms, newsCredits, newsWeb, newsVersion;
+    TextView newsChannel, newsOrientationType,newsOrientation, newsFont, newsSupport, newsReview, newsRecomend, newsPolicy, newsTerms, newsCredits, newsWeb, newsVersion,animationType;
     //private static Activity context;
-    RelativeLayout orientationListiner,logoutlistiner;
+    RelativeLayout orientationListiner,logoutlistiner,animationLayout;
     Context context;
     private static SharedPreferences sharedpreferences;
     @Override
@@ -139,6 +139,170 @@ public class Settings extends AppCompatActivity {
             }
         });
 
+        animationLayout=(RelativeLayout)findViewById(R.id.animationType);
+        animationLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
+                builderSingle.setIcon(R.drawable.ic_launcher);
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
+                builderSingle.setTitle("CubeOut Transformer");
+                arrayAdapter.add("Accordion Transformer");
+
+                arrayAdapter.add("BackgroundToForeground Transformer");
+
+                arrayAdapter.add("CubeIn Transformer");
+
+                arrayAdapter.add("DepthPage Transformer");
+
+                arrayAdapter.add("FlipHorizontal Transformer");
+
+                arrayAdapter.add("FlipVertical Transformer");
+
+                arrayAdapter.add("ForegroundToBackground Transformer");
+
+                arrayAdapter.add("RotateDown Transformer");
+
+                arrayAdapter.add("RotateUp Transformer");
+
+                arrayAdapter.add("ScaleInOut Transformer");
+
+                arrayAdapter.add("Stack Transformer");
+
+                arrayAdapter.add("Tablet Transformer");
+
+                arrayAdapter.add("ZoomIn Transformer");
+
+                arrayAdapter.add("ZoomOutSlide Transformer");
+
+                arrayAdapter.add("ZoomOut Transformer");
+
+                builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                builderSingle.setAdapter(
+                        arrayAdapter,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferences.Editor editor = sharedpreferences.edit();
+                                switch (which) {
+                                    case 0:
+                                        editor.putString(Main.ANIMATIONTYPE, "CubeOut");
+                                        newsOrientationType.setText("CubeOut Transformer");
+                                        editor.apply();
+                                        recreate();
+                                        break;
+                                    case 1:
+                                        editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "Accordion");
+                                        newsOrientationType.setText("Accordion Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+                                    case 2:
+                                        editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "BackgroundToForeground");
+                                        newsOrientationType.setText("BackgroundToForeground Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+                                    case 3:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "CubeIn");
+                                        newsOrientationType.setText("CubeIn Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+                                    case 4:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "DepthPage");
+                                        newsOrientationType.setText("DepthPage Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+                                    case 5:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "FlipHorizontal");
+                                        newsOrientationType.setText("FlipHorizontal Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+                                    case 6:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "FlipVertical");
+                                        newsOrientationType.setText("FlipVertical Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+                                    case 7:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "ForegroundToBackground");
+                                        newsOrientationType.setText("ForegroundToBackground Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 8:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "RotateDown");
+                                        newsOrientationType.setText("RotateDown Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 9:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "RotateUp");
+                                        newsOrientationType.setText("RotateUp Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 10:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "ScaleInOut");
+                                        newsOrientationType.setText("ScaleInOut Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 11:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "Stack");
+                                        newsOrientationType.setText("Stack Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 12:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "Tablet");
+                                        newsOrientationType.setText("Tablet Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 13:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "ZoomIn");
+                                        newsOrientationType.setText("ZoomIn Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 14:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "ZoomOutSlide");
+                                        newsOrientationType.setText("ZoomOutSlide Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+
+                                    case 15:editor = sharedpreferences.edit();
+                                        editor.putString(Main.ANIMATIONTYPE, "ZoomOut");
+                                        newsOrientationType.setText("ZoomOut Transformer");
+                                        recreate();
+                                        editor.apply();
+                                        break;
+                                }
+                            }
+                        });
+                builderSingle.show();
+            }
+        });
 
 
         logoutlistiner=(RelativeLayout)findViewById(R.id.logout_lisetiner);

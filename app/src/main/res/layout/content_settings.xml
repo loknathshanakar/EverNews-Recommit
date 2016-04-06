@@ -10,7 +10,7 @@
     <ScrollView
         android:id="@+id/textAreaScroller"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:fillViewport="true"
         android:scrollbars="vertical">
 
@@ -72,6 +72,26 @@
                 android:paddingLeft="20sp"
                 android:textSize="15sp"
                 android:text="Article Font Size"/>
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_margin="5sp"
+                android:layout_height="1dp"
+                android:background="@color/accent" />
+
+            <RelativeLayout
+                android:id="@+id/animationType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/animation_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10sp"
+                    android:paddingLeft="20sp"
+                    android:textSize="15sp"
+                    android:text="Page Change Animation"/>
             </RelativeLayout>
             <View
                 android:layout_width="match_parent"
