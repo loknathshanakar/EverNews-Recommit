@@ -265,7 +265,7 @@ public class ViewNews extends AppCompatActivity {
                  newsImage ="<br><br><center><img src=\""+newsImage+""+"\" alt=\"No Image\" style=\"max-width:400px;max-height:400px;\"></center><br><br>";
             else
                 newsImage="";
-            String news=fullText;
+            String news="<p align=\"justify\">"+fullText+"</p>";
             finalHtml = source + title + newsImage + news;
             String Temp = finalHtml;
             Temp = Temp.replaceAll("(\r\n|\r|\n|\n\r)", "<br>");
@@ -356,7 +356,7 @@ public class ViewNews extends AppCompatActivity {
                         eIndex = Xml.indexOf("</FullText>");
                         String source = "", title = "", news = "";
                         if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                            news = Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex));
+                            news = "<p align=\"justify\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p>";
                         }
                         iIndex = Xml.indexOf("<NewsTitle>") + 11;
                         eIndex = Xml.indexOf("</NewsTitle>");
@@ -389,9 +389,9 @@ public class ViewNews extends AppCompatActivity {
 
                 @Override
                 protected void onPostExecute(String link) {
-                    if(finalHtml.length()>30)
+                    if(finalHtml.length()>=0)
                         finalHtml = "<!DOCTYPE html> <html> <body>" + finalHtml + "</p> </body> </html>";
-                    if(noException==true && newsTitle.length()>5)
+                    if(noException && newsTitle.length()>5)
                         fab_new.setVisibility(View.VISIBLE);
                 }
             }.execute();

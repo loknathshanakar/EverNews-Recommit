@@ -19,7 +19,126 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             >
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/newsNotify"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10sp"
+                    android:paddingLeft="20sp"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:text="Push Notification"/>
 
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/switch1"
+                    android:layout_marginRight="30dp"
+                    android:layout_marginEnd="30dp"
+                    android:layout_alignTop="@+id/newsNotify"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_margin="5sp"
+                android:layout_height="2dp"
+                android:background="@color/accent" />
+
+            <RelativeLayout
+                android:id="@+id/morningLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:id="@+id/morningTimenum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="30dp"
+                    android:layout_marginEnd="30dp"
+                    android:textSize="15sp"
+                    android:text="XX:XX"
+                    android:layout_alignTop="@+id/morningTime"
+                    android:layout_alignParentRight="true"/>
+
+                <TextView
+                    android:id="@+id/morningTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10sp"
+                    android:paddingLeft="20sp"
+                    android:textSize="15sp"
+                    android:text="Morning Notification Time"/>
+            </RelativeLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_margin="5sp"
+                android:layout_height="1dp"
+                android:background="@color/accent" />
+
+            <RelativeLayout
+                android:id="@+id/noonLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/noonTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10sp"
+                    android:paddingLeft="20sp"
+                    android:textSize="15sp"
+                    android:text="Noon Notification Time"/>
+
+                <TextView
+                    android:id="@+id/noonTimenum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="30dp"
+                    android:layout_marginEnd="30dp"
+                    android:textSize="15sp"
+                    android:text="XX:XX"
+                    android:layout_alignTop="@+id/noonTime"
+                    android:layout_alignParentRight="true"/>
+            </RelativeLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_margin="5sp"
+                android:layout_height="1dp"
+                android:background="@color/accent" />
+
+            <RelativeLayout
+                android:id="@+id/eveningLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/eveningTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10sp"
+                    android:paddingLeft="20sp"
+                    android:textSize="15sp"
+                    android:text="Evening Notification Time"/>
+
+                <TextView
+                    android:id="@+id/eveningTimenum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="30dp"
+                    android:layout_marginEnd="30dp"
+                    android:textSize="15sp"
+                    android:text="XX:XX"
+                    android:layout_alignTop="@+id/eveningTime"
+                    android:layout_alignParentRight="true"/>
+            </RelativeLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_margin="5sp"
+                android:layout_height="1dp"
+                android:background="@color/accent" />
             <TextView
                 android:id="@+id/newsHead"
                 android:layout_width="match_parent"
@@ -42,19 +161,7 @@
                 android:paddingLeft="20sp"
                 android:textSize="15sp"
                 android:text="Add News Channel"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_margin="5sp"
-                android:layout_height="1dp"
-                android:background="@color/accent" />
-            <TextView
-                android:id="@+id/newsNotify"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10sp"
-                android:paddingLeft="20sp"
-                android:textSize="15sp"
-                android:text="Push Notification Setting"/>
+
             <View
                 android:layout_width="match_parent"
                 android:layout_margin="5sp"
@@ -78,12 +185,14 @@
                 android:layout_width="match_parent"
                 android:layout_margin="5sp"
                 android:layout_height="1dp"
-                android:background="@color/accent" />
+                android:background="@color/accent"
+                android:visibility="gone"/>
 
             <RelativeLayout
                 android:id="@+id/animationType"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:visibility="gone">
                 <TextView
                     android:id="@+id/animation_type"
                     android:layout_width="match_parent"

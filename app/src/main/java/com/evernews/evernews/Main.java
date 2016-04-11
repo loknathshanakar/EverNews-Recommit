@@ -109,6 +109,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public static String APPLICATIONORIENTATION="APPLICATIONORIENTATION";
     public static String ERASETABLE_1="ERASETABLE_1";
     public static String ANIMATIONTYPE="ANIMATIONTYPE";
+
+    public static String NOTIFICATIONENABLED="NOTIFICATIONENABLED";
+    public static String MORNINGTIME="MORNINGTIME";
+    public static String NOONTIME="NOONTIME";
+    public static String EVENINGTIME="EVENINGTIME";
     public static String uniqueID="";
     SQLiteDatabase db;
     ShareDialog shareDialog;

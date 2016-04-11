@@ -19,16 +19,21 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
 
 public class Settings extends AppCompatActivity {
-    TextView newsChannel, newsOrientationType,newsOrientation, newsFont, newsSupport, newsReview, newsRecomend, newsPolicy, newsTerms, newsCredits, newsWeb, newsVersion,animationType;
+    TextView newsChannel, newsOrientationType,newsOrientation, newsFont, newsSupport, newsReview, newsRecomend, newsPolicy, newsTerms, newsCredits, newsWeb, newsVersion,animationType,morningTime,noonTime,eveningTime;
     //private static Activity context;
-    RelativeLayout orientationListiner,logoutlistiner,animationLayout;
+    RelativeLayout orientationListiner,logoutlistiner,animationLayout,morningLayout,noonLayout,eveningLayout;
+    String mTime="",nTime="",eTime="";
+    Switch enableSwitch;
+    int enabled=-1;
     Context context;
     private static SharedPreferences sharedpreferences;
     @Override
@@ -53,7 +58,36 @@ public class Settings extends AppCompatActivity {
 
 
 
-
+        /**Notification**/
+        final SharedPreferences.Editor editor=sharedpreferences.edit();
+        enableSwitch=(Switch)findViewById(R.id.switch1);
+        enableSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked)
+                    editor.putInt(Main.NOTIFICATIONENABLED,1);
+                else
+                    editor.putInt(Main.NOTIFICATIONENABLED,0);
+                editor.apply();
+            }
+        });
+        enabled=sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1);
+        if(enabled==1)
+            enableSwitch.setChecked(true);
+        else
+            enableSwitch.setChecked(false);
+        mTime=sharedpreferences.getString(Main.MORNINGTIME,"");
+        nTime=sharedpreferences.getString(Main.NOONTIME,"");
+        eTime=sharedpreferences.getString(Main.EVENINGTIME,"");
+        morningLayout=(RelativeLayout)findViewById(R.id.morningLayout);
+        noonLayout=(RelativeLayout)findViewById(R.id.noonLayout);
+        eveningLayout=(RelativeLayout)findViewById(R.id.eveningLayout);
+        morningTime=(TextView)findViewById(R.id.morningTimenum);
+        morningTime.setText(mTime);
+        noonTime=(TextView)findViewById(R.id.noonTimenum);
+        noonTime.setText(nTime);
+        eveningTime=(TextView)findViewById(R.id.eveningTimenum);
+        eveningTime.setText(eTime);
+        /**END**/
         newsChannel= (TextView) findViewById(R.id.newsChannel);
         newsChannel.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -1,6 +1,7 @@
 package com.evernews.evernews;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -84,6 +85,15 @@ public class Initilization extends AppCompatActivity {
         /*String path = DB_PATH + DB_NAME;
         db = SQLiteDatabase.openDatabase(path, null, 0);
         db.execSQL("DROP TABLE IF EXISTS FULLNEWS");*/
+        sharedpreferences = getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedpreferences.edit();
+        if(sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==-1){
+            editor.putInt(Main.NOTIFICATIONENABLED,1);
+            editor.putString(Main.MORNINGTIME, "9:00 AM");
+            editor.putString(Main.NOONTIME, "12:00 PM");
+            editor.putString(Main.EVENINGTIME, "6:00 PM");
+            editor.apply();
+        }
         new GetNewsTask().execute();
     }
 
