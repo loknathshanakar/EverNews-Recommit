@@ -4,12 +4,14 @@ package com.evernews.evernews;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -21,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -40,15 +43,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ToxicBakery.viewpager.transforms.AccordionTransformer;
+import com.ToxicBakery.viewpager.transforms.BackgroundToForegroundTransformer;
 import com.ToxicBakery.viewpager.transforms.CubeInTransformer;
 import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
+import com.ToxicBakery.viewpager.transforms.DepthPageTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipVerticalTransformer;
+import com.ToxicBakery.viewpager.transforms.ForegroundToBackgroundTransformer;
+import com.ToxicBakery.viewpager.transforms.RotateDownTransformer;
+import com.ToxicBakery.viewpager.transforms.RotateUpTransformer;
+import com.ToxicBakery.viewpager.transforms.ScaleInOutTransformer;
+import com.ToxicBakery.viewpager.transforms.StackTransformer;
+import com.ToxicBakery.viewpager.transforms.TabletTransformer;
+import com.ToxicBakery.viewpager.transforms.ZoomInTransformer;
+import com.ToxicBakery.viewpager.transforms.ZoomOutSlideTransformer;
+import com.ToxicBakery.viewpager.transforms.ZoomOutTranformer;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.analytics.GoogleAnalytics;
@@ -115,6 +134,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public static String MORNINGTIME="MORNINGTIME";
     public static String NOONTIME="NOONTIME";
     public static String EVENINGTIME="EVENINGTIME";
+    public static String ONALRAMCHANGED1="ONALRAMCHANGED1";
+    public static String ONALRAMCHANGED2="ONALRAMCHANGED2";
+    public static String ONALRAMCHANGED3="ONALRAMCHANGED3";
     public static String uniqueID="";
     SQLiteDatabase db;
     ShareDialog shareDialog;
@@ -146,8 +168,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            finish();
-            finish();
+           // finish();
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -227,77 +248,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
         }
     }
-    private String extractLogToFile()
-    {
-        PackageManager manager = this.getPackageManager();
-        PackageInfo info = null;
-        try {
-            info = manager.getPackageInfo (this.getPackageName(), 0);
-        } catch (PackageManager.NameNotFoundException e2) {
-        }
-        String model = Build.MODEL;
-        if (!model.startsWith(Build.MANUFACTURER))
-            model = Build.MANUFACTURER + " " + model;
-
-        // Make file name - file must be saved to external storage or it wont be readable by
-        // the email app.
-        String path = Environment.getExternalStorageDirectory() + "/" + "evernews/";
-        String fullName = path +"evernews";
-
-        // Extract to file.
-        File file = new File (fullName);
-        InputStreamReader reader = null;
-        FileWriter writer = null;
-        try
-        {
-            // For Android 4.0 and earlier, you will get all app's log output, so filter it to
-            // mostly limit it to your app's output.  In later versions, the filtering isn't needed.
-            String cmd = (Build.VERSION.SDK_INT <= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) ?
-                    "logcat -d -v time MyApp:v dalvikvm:v System.err:v *:s" :
-                    "logcat -d -v time";
-
-            // get input stream
-            Process process = Runtime.getRuntime().exec(cmd);
-            reader = new InputStreamReader (process.getInputStream());
-
-            // write output stream
-            writer = new FileWriter (file);
-            writer.write ("Android version: " +  Build.VERSION.SDK_INT + "\n");
-            writer.write ("Device: " + model + "\n");
-            writer.write ("App version: " + (info == null ? "(null)" : info.versionCode) + "\n");
-
-            char[] buffer = new char[10000];
-            do
-            {
-                int n = reader.read (buffer, 0, buffer.length);
-                if (n == -1)
-                    break;
-                writer.write (buffer, 0, n);
-            } while (true);
-
-            reader.close();
-            writer.close();
-        }
-        catch (IOException e)
-        {
-            if (writer != null)
-                try {
-                    writer.close();
-                } catch (IOException e1) {
-                }
-            if (reader != null)
-                try {
-                    reader.close();
-                } catch (IOException e1) {
-                }
-
-            // You might want to write a failure message to the log here.
-            return null;
-        }
-
-        return fullName;
-    }
-
     public void shareByOther(String text) {
         try {
             Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
@@ -307,36 +257,140 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }catch (Exception e){e.printStackTrace();}
     }
 
-    private Thread.UncaughtExceptionHandler handleAppCrash =
-            new Thread.UncaughtExceptionHandler() {
-                @Override
-                public void uncaughtException(Thread thread, Throwable ex) {
-                    Log.e("error", ex.toString());
+    public void setAnimation(){
+        /**Set animation type**/
+        String animationCode=sharedpreferences.getString(Main.ANIMATIONTYPE,"CubeOut");
+        if(animationCode.compareTo("CubeOut")==0)
+            mViewPager.setPageTransformer(true, new CubeOutTransformer());
+        if(animationCode.compareTo("Accordion")==0)
+            mViewPager.setPageTransformer(true, new AccordionTransformer());
+        if(animationCode.compareTo("BackgroundToForeground")==0)
+            mViewPager.setPageTransformer(true, new BackgroundToForegroundTransformer());
+        if(animationCode.compareTo("CubeIn")==0)
+            mViewPager.setPageTransformer(true, new CubeInTransformer());
+        if(animationCode.compareTo("DepthPage")==0)
+            mViewPager.setPageTransformer(true, new DepthPageTransformer());
+        if(animationCode.compareTo("FlipHorizontal")==0)
+            mViewPager.setPageTransformer(true, new FlipHorizontalTransformer());
+        if(animationCode.compareTo("FlipVertical")==0)
+            mViewPager.setPageTransformer(true, new FlipVerticalTransformer());
+        if(animationCode.compareTo("ForegroundToBackground")==0)
+            mViewPager.setPageTransformer(true, new ForegroundToBackgroundTransformer());
+        if(animationCode.compareTo("RotateDown")==0)
+            mViewPager.setPageTransformer(true, new RotateDownTransformer());
+        if(animationCode.compareTo("RotateUp")==0)
+            mViewPager.setPageTransformer(true, new RotateUpTransformer());
+        if(animationCode.compareTo("ScaleInOut")==0)
+            mViewPager.setPageTransformer(true, new ScaleInOutTransformer());
+        if(animationCode.compareTo("Stack")==0)
+            mViewPager.setPageTransformer(true, new StackTransformer());
+        if(animationCode.compareTo("Tablet")==0)
+            if(animationCode.compareTo("Tablet")==0)
+                mViewPager.setPageTransformer(true, new TabletTransformer());
+        if(animationCode.compareTo("ZoomIn")==0)
+            mViewPager.setPageTransformer(true, new ZoomInTransformer());
+        if(animationCode.compareTo("ZoomOutSlide")==0)
+            mViewPager.setPageTransformer(true, new ZoomOutSlideTransformer());
+        if(animationCode.compareTo("ZoomOut")==0)
+            mViewPager.setPageTransformer(true, new ZoomOutTranformer());
+        /**END**/
+    }
 
-                    StringWriter errors = new StringWriter();
-                    ex.printStackTrace(new PrintWriter(errors));
-                    ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("Error Log", errors.toString());
-                    clipboard.setPrimaryClip(clip);
-                    shareByOther(ex.toString());
-                    finish();
-                }
-            };
+    boolean doubleBackToExitPressedOnce = false;
 
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            Intent i = context.getPackageManager().getLaunchIntentForPackage( context.getPackageName() );
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            finish();
+            return;
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
+    }
     @Override
     public void onResume() {
         super.onResume();  // Always call the superclass method first
 
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+        pendingIntent1 = PendingIntent.getService(context, 0, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent2 = PendingIntent.getService(context, 0, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent3 = PendingIntent.getService(context, 0, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+
         final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
-        if(sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==1)
-            startAlarm(viewGroup);
-        else
-            cancelAlarm(viewGroup);
+        if(sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==1 &&(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1 || sharedpreferences.getInt(Main.ONALRAMCHANGED2,-1)==1 ||sharedpreferences.getInt(Main.ONALRAMCHANGED3,-1)==1)) {
+            //startAlarm(viewGroup);
+            //Register AlarmManager Broadcast receive.
+            firingCal= Calendar.getInstance();
+            firingCal.set(Calendar.HOUR, 1); // At the hour you want to fire the alarm
+            firingCal.set(Calendar.MINUTE, 35); // alarm minute
+            firingCal.set(Calendar.SECOND, 0); // and alarm second
+
+            Calendar calendarM = Calendar.getInstance();
+            Calendar calendarN = Calendar.getInstance();
+            Calendar calendarE = Calendar.getInstance();
+
+            Date d1=convertStr2Date(sharedpreferences.getString(Main.MORNINGTIME, "00:00 AM"));
+            Date d2=convertStr2Date(sharedpreferences.getString(Main.NOONTIME, "00:00 AM"));
+            Date d3=convertStr2Date(sharedpreferences.getString(Main.EVENINGTIME,"00:00 AM"));
+
+            calendarM.set(Calendar.HOUR_OF_DAY, d1.getHours()); // For 1 PM or 2 PM
+            calendarM.set(Calendar.MINUTE, d1.getMinutes());
+            calendarM.set(Calendar.SECOND, 0);
+            //calendarM.add(Calendar.DAY_OF_YEAR, 1);
+
+            calendarN.set(Calendar.HOUR_OF_DAY, d2.getHours()); // For 1 PM or 2 PM
+            calendarN.set(Calendar.MINUTE, d2.getMinutes());
+            calendarN.set(Calendar.SECOND, 0);
+            //calendarN.add(Calendar.DAY_OF_YEAR, 1);
+
+            calendarE.set(Calendar.HOUR_OF_DAY, d3.getHours()); // For 1 PM or 2 PM
+            calendarE.set(Calendar.MINUTE, d3.getMinutes());
+            calendarE.set(Calendar.SECOND, 0);
+            //calendarE.add(Calendar.DAY_OF_YEAR, 1);
+
+            long intendedTime = firingCal.getTimeInMillis();
+            SharedPreferences.Editor editor=sharedpreferences.edit();
+            registerMyAlarmBroadcast();
+            if(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1) {
+                alarmManager1.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, myPendingIntent1);
+                editor.putInt(Main.ONALRAMCHANGED1,0);
+                editor.apply();
+            }
+            if(sharedpreferences.getInt(Main.ONALRAMCHANGED2,-1)==1) {
+                alarmManager2.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, myPendingIntent2);
+                editor.putInt(Main.ONALRAMCHANGED2,0);
+                editor.apply();
+            }
+            if(sharedpreferences.getInt(Main.ONALRAMCHANGED3,-1)==1) {
+                alarmManager3.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, myPendingIntent3);
+                editor.putInt(Main.ONALRAMCHANGED3,0);
+                editor.apply();
+            }
+
+        }
+        else {
+            //cancelAlarm(viewGroup);
+            if(myBroadcastReceiver!=null) {
+                unregisterReceiver(myBroadcastReceiver);
+                UnregisterAlarmBroadcast();
+            }
+        }
 
 
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        setAnimation();
         mTracker = application.getDefaultTracker();
         mTracker.setScreenName("In Main Screen");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
@@ -347,7 +401,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
     }
 
-    private PendingIntent pendingIntent;
+    private PendingIntent pendingIntent1,pendingIntent2,pendingIntent3;
     private AlarmManager managerM,managerN,managerE;
     public Date convertStr2Date(String dateString){
         SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm aa");
@@ -361,9 +415,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         return(convertedDate);
     }
     public void startAlarm(View view) {
-        managerM = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        managerN = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        managerE = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        managerM = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        managerN = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        managerE = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 
 
         Calendar calendarM = Calendar.getInstance();
@@ -387,16 +441,57 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         calendarE.set(Calendar.MINUTE, d3.getMinutes());
         calendarE.set(Calendar.SECOND, 0);
         calendarE.add(Calendar.DAY_OF_YEAR, 1);
-        managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-        managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-        managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
 
-        Toast.makeText(this, "Push notification Enabled", Toast.LENGTH_SHORT).show();
+        /*managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent1);
+        managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
+        managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);*/
+
+        managerM.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 10000, pendingIntent1);
+        managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
+        managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);
+        //Toast.makeText(this, "Push notification Enabled", Toast.LENGTH_SHORT).show();
+    }
+
+    PendingIntent myPendingIntent1,myPendingIntent2,myPendingIntent3;
+    AlarmManager alarmManager1,alarmManager2,alarmManager3;
+    BroadcastReceiver myBroadcastReceiver;
+    Calendar firingCal;
+    private void registerMyAlarmBroadcast()
+    {
+        Log.i("#log", "Going to register Intent.RegisterAlramBroadcast");
+
+        //This is the call back function(BroadcastReceiver) which will be call when your
+        //alarm time will reached.
+        myBroadcastReceiver = new AlarmReceiver();
+
+        registerReceiver(myBroadcastReceiver, new IntentFilter("com.evernews.evernews") );
+        myPendingIntent1 = PendingIntent.getBroadcast( this, 0, new Intent("com.evernews.evernews"),0 );
+        myPendingIntent2 = PendingIntent.getBroadcast( this, 0, new Intent("com.evernews.evernews"),0 );
+        myPendingIntent3 = PendingIntent.getBroadcast( this, 0, new Intent("com.evernews.evernews"),0 );
+        alarmManager1 = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
+        alarmManager2 = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
+        alarmManager3 = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
+    }
+    private void UnregisterAlarmBroadcast()
+    {
+        if(alarmManager1!=null && myPendingIntent1!=null) {
+            alarmManager1.cancel(myPendingIntent1);
+            getBaseContext().unregisterReceiver(myBroadcastReceiver);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(myBroadcastReceiver!=null)
+            unregisterReceiver(myBroadcastReceiver);
+        super.onDestroy();
     }
 
     public void cancelAlarm(View view) {
-        if (managerN != null && pendingIntent!=null ) {
-            managerN.cancel(pendingIntent);
+        if (managerN != null && pendingIntent1!=null ) {
+            managerN.cancel(pendingIntent1);
+            managerN.cancel(pendingIntent3);
+            managerN.cancel(pendingIntent2);
             Toast.makeText(this, "Push Notification Disabled Canceled", Toast.LENGTH_SHORT).show();
         }
     }
@@ -448,8 +543,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         mViewPager = (ViewPager) findViewById(R.id.container);
         //mViewPager.setOffscreenPageLimit(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        mViewPager.setPageTransformer(true, new CubeOutTransformer());
+        setAnimation();
 
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -645,6 +739,41 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_brightness:
+                LayoutInflater linf = LayoutInflater.from(context);
+
+                final View inflator = linf.inflate(R.layout.brightness_dialog, null);
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setView(inflator).show();
+                builder.setCancelable(true);
+                SeekBar sk=(SeekBar)inflator.findViewById(R.id.seekBar);
+                final TextView tv=(TextView)inflator.findViewById(R.id.textView);
+                sk.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        // TODO Auto-generated method stub
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        // TODO Auto-generated method stub
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
+                        float BackLightValue = (float)arg1/100;
+                        int curBrightnessValue=0;
+                        try {
+                            curBrightnessValue = android.provider.Settings.System.getInt(getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS);
+                        }catch (android.provider.Settings.SettingNotFoundException e){/****/}
+                        WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
+                        layoutParams.screenBrightness = BackLightValue; // Set Value
+                        getWindow().setAttributes(layoutParams); // Set params
+                    }
+                });
+                return true;
             case R.id.action_settings:
                 Intent i=new Intent(Main.this,Settings.class);
                 startActivity(i);
@@ -754,8 +883,10 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             try
             {
                 Initilization.androidId = android.provider.Settings.Secure.getString(getApplicationContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
+                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
                 content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+                content=content.replace("\n","$$$$");
+                content=content.replace("\n","$$$$");
             }
             catch(Exception e)
             {
@@ -782,6 +913,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     Toast.makeText(getApplicationContext(), "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
             }
             if (content != null) {
+                parseResults(content);
                 final ProgressDialog progressdlg = new ProgressDialog(context);
                 progressdlg.setMessage("Updating Application");
                 progressdlg.setTitle("Updating contents,Please Wait...");
@@ -823,8 +955,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             try
             {
                 Initilization.androidId = android.provider.Settings.Secure.getString(getApplicationContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
+                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
                 content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+                content=content.replace("\n","$$$$");
             }
             catch(Exception e)
             {

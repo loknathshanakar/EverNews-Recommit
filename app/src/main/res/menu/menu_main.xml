@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.evernews.evernews.Main">
 
+    <item
+        android:id="@+id/action_brightness"
+        android:icon="@drawable/screen"
+        android:title="Brightness Control"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_refresh"
@@ -26,4 +31,5 @@
         android:icon="@drawable/ic_reorder_black_24dp"
         android:title="Settings"
         app:showAsAction="always" />
+
 </menu>

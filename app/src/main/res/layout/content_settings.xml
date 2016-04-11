@@ -186,13 +186,13 @@
                 android:layout_margin="5sp"
                 android:layout_height="1dp"
                 android:background="@color/accent"
-                android:visibility="gone"/>
+                android:visibility="visible"/>
 
             <RelativeLayout
                 android:id="@+id/animationType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone">
+                android:visibility="visible">
                 <TextView
                     android:id="@+id/animation_type"
                     android:layout_width="match_parent"

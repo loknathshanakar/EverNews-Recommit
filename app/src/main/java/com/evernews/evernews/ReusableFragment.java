@@ -276,6 +276,7 @@ public class ReusableFragment extends Fragment {
                                         Initilization.androidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
                                         String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadNextNewsForCategory?CategoryId="+asyncCatId+"&LastNewsId="+asyncNewsId;//+Initilization.androidId;//Over ride but should be Main.androidId
                                         content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+                                        content=content.replace("\n","$$$$");
                                     }
                                     catch(Exception e)
                                     {
@@ -873,7 +874,7 @@ public class ReusableFragment extends Fragment {
         protected Void doInBackground(Void... params) {
             try {
                 Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId=" + Initilization.androidId;//Over ride but should be Main.androidId
+                String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId=" + Initilization.androidId;//Over ride but should be Main.androidId
                 content = Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
             } catch (Exception e) {
                 if (e instanceof SocketTimeoutException) {

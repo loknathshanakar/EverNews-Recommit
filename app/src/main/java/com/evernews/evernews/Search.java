@@ -134,7 +134,7 @@ public class Search extends AppCompatActivity {
                             iIndex = Xml.indexOf("<FullText>") + 10;
                             eIndex = Xml.indexOf("</FullText>");
                             if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                                news = "<p align=\"justify\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p>";
+                                news = "<p align=\"justify\"><p style=\"font-size:18px\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p></p>";
                             }
                             iIndex = Xml.indexOf("<NewsTitle>") + 11;
                             eIndex = Xml.indexOf("</NewsTitle>");

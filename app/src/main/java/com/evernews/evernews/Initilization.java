@@ -92,6 +92,9 @@ public class Initilization extends AppCompatActivity {
             editor.putString(Main.MORNINGTIME, "9:00 AM");
             editor.putString(Main.NOONTIME, "12:00 PM");
             editor.putString(Main.EVENINGTIME, "6:00 PM");
+            editor.putInt(Main.ONALRAMCHANGED1,1);
+            editor.putInt(Main.ONALRAMCHANGED2,1);
+            editor.putInt(Main.ONALRAMCHANGED3,1);
             editor.apply();
         }
         new GetNewsTask().execute();
@@ -429,9 +432,11 @@ public class Initilization extends AppCompatActivity {
                 try {
                     publishProgress(0);
                     androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
-                    String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadXMLDefaultNews?AndroidId=" + androidId;//Over ride but should be Main.androidId
+                    String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId=" + androidId;//Over ride but should be Main.androidId
                     goCode = 1;
                     content = Jsoup.connect(fetchLink).ignoreContentType(true).timeout(timeout + timeout).execute().body();
+                    content=content.replace("\n","$$$$");
+
                 } catch (Exception e) {
                     if (e instanceof SocketTimeoutException) {
                         ExceptionCode = 1;

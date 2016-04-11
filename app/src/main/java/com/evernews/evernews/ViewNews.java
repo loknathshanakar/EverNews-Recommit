@@ -239,6 +239,7 @@ public class ViewNews extends AppCompatActivity {
         fullText = intent.getStringExtra("FULL_TEXT")+"";
         rssTitle = intent.getStringExtra("RSS_TITLE")+"";
         newsImage=intent.getStringExtra("NEWS_IMAGE")+"";
+        fullText=fullText.replace("$$$$","<br>");
         boolean cleanUUID=true;
         {
             char newsImagec[] = newsImage.toCharArray();
@@ -268,7 +269,7 @@ public class ViewNews extends AppCompatActivity {
                  newsImage ="<br><br><center><img src=\""+newsImage+""+"\" alt=\"No Image\" style=\"max-width:400px;max-height:400px;\"></center><br><br>";
             else
                 newsImage="";
-            String news="<p align=\"justify\">"+fullText+"</p>";
+            String news="<p align=\"justify\"><p style=\"font-size:18px\">"+fullText+"</p></p>";
             finalHtml = source + title + newsImage + news;
             String Temp = finalHtml;
             Temp = Temp.replaceAll("(\r\n|\r|\n|\n\r)", "<br>");
@@ -359,7 +360,7 @@ public class ViewNews extends AppCompatActivity {
                         eIndex = Xml.indexOf("</FullText>");
                         String source = "", title = "", news = "";
                         if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                            news = "<p align=\"justify\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p>";
+                            news = "<p align=\"justify\"><p style=\"font-size:18px\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p></p>";
                         }
                         iIndex = Xml.indexOf("<NewsTitle>") + 11;
                         eIndex = Xml.indexOf("</NewsTitle>");
@@ -598,8 +599,10 @@ public class ViewNews extends AppCompatActivity {
             if(getArguments().getInt(ARG_SECTION_NUMBER)==2)
             {
                 int x=0;
-                if(finalHtml!=null)
+                if(finalHtml!=null) {
+                    finalHtml.replace("$$$$","<br><br>");
                     mWebView.loadData(finalHtml, "text/html", null);
+                }
                 if(fullText.length()<2 && x==1) {
                     if (finalHtml.isEmpty()) {
                         new AsyncTask<Void, Void, String>() {
@@ -610,6 +613,7 @@ public class ViewNews extends AppCompatActivity {
                                     String xmlUrl = "http://rssapi.psweb.in/everapi.asmx/LoadSingleNews?NewsID=" + newsID;
                                     URL cleanURL = new URL(xmlUrl.toString());
                                     String Xml = Jsoup.connect(xmlUrl).ignoreContentType(true).execute().body();
+                                    Xml=Xml.replace("\n","$$$$");
                                     char Xmlchar[] = Xml.toCharArray();
                                     int iIndex = -1;
                                     int eIndex = -1;
@@ -645,6 +649,7 @@ public class ViewNews extends AppCompatActivity {
                             @Override
                             protected void onPostExecute(String link) {
                                 finalHtml2 = "<!DOCTYPE html> <html> <body>" + finalHtml2 + "</p> </body> </html>";
+                                finalHtml2.replace("$$$$","<br><br>");
                                 mWebView.loadData(finalHtml2, "text/html", null);
                             }
                         }.execute();

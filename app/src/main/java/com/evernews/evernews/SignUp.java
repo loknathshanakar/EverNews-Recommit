@@ -492,9 +492,6 @@ public class SignUp extends Fragment implements View.OnClickListener{
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-                final AlertDialog alert = builder.create();
-
-                final LayoutInflater inflater = getActivity().getLayoutInflater();
 
                 fLogin = (Button) inflator.findViewById(R.id.facebook_login);
                 gLogin = (Button) inflator.findViewById(R.id.google_login);

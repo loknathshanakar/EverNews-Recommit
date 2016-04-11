@@ -48,7 +48,6 @@ public class Settings extends AppCompatActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
             case TIME_DIALOG_ID:
-
                 // set time picker as current time
                 return new TimePickerDialog(this, timePickerListener, hour, minute, false);
 
@@ -104,16 +103,19 @@ public class Settings extends AppCompatActivity {
         if(whichBox==1) {
             morningTime.setText(aTime);
             editor.putString(Main.MORNINGTIME, aTime);
+            editor.putInt(Main.ONALRAMCHANGED1,1);
             editor.apply();
         }
         else if(whichBox==2) {
             noonTime.setText(aTime);
             editor.putString(Main.NOONTIME,aTime);
+            editor.putInt(Main.ONALRAMCHANGED2,1);
             editor.apply();
         }
         else if(whichBox==3) {
             eveningTime.setText(aTime);
             editor.putString(Main.EVENINGTIME,aTime);
+            editor.putInt(Main.ONALRAMCHANGED3,1);
             editor.apply();
         }
     }
@@ -146,10 +148,12 @@ public class Settings extends AppCompatActivity {
         enableSwitch=(Switch)findViewById(R.id.switch1);
         enableSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked)
-                    editor.putInt(Main.NOTIFICATIONENABLED,1);
-                else
-                    editor.putInt(Main.NOTIFICATIONENABLED,0);
+                if(isChecked) {
+                    editor.putInt(Main.NOTIFICATIONENABLED, 1);
+                }
+                else {
+                    editor.putInt(Main.NOTIFICATIONENABLED, 0);
+                }
                 editor.apply();
             }
         });
@@ -534,7 +538,7 @@ public class Settings extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
             Intent intent=new Intent(Settings.this,Main.class);
-            startActivity(intent);
+            //startActivity(intent);
             finish();
         }
         return super.onKeyDown(keyCode, event);
@@ -549,7 +553,7 @@ public class Settings extends AppCompatActivity {
 
         if(id==android.R.id.home){
             Intent intent=new Intent(Settings.this,Main.class);
-            startActivity(intent);
+            //startActivity(intent);
             finish();
         }
         //noinspection SimplifiableIfStatement
