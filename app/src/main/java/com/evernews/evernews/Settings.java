@@ -1,8 +1,10 @@
 package com.evernews.evernews;
 
 import android.app.AlarmManager;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,6 +25,7 @@ import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import java.util.List;
@@ -36,6 +39,86 @@ public class Settings extends AppCompatActivity {
     int enabled=-1;
     Context context;
     private static SharedPreferences sharedpreferences;
+    static final int TIME_DIALOG_ID = 1111;
+    private int hour;
+    private int minute;
+    int whichBox=0;
+    SharedPreferences.Editor editor;
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        switch (id) {
+            case TIME_DIALOG_ID:
+
+                // set time picker as current time
+                return new TimePickerDialog(this, timePickerListener, hour, minute, false);
+
+        }
+        return null;
+    }
+
+    private TimePickerDialog.OnTimeSetListener timePickerListener = new TimePickerDialog.OnTimeSetListener() {
+        @Override
+        public void onTimeSet(TimePicker view, int hourOfDay, int minutes) {
+            // TODO Auto-generated method stub
+            hour   = hourOfDay;
+            minute = minutes;
+            updateTime(hour,minute);
+
+        }
+
+    };
+
+    private static String utilTime(int value) {
+
+        if (value < 10)
+            return "0" + String.valueOf(value);
+        else
+            return String.valueOf(value);
+    }
+
+    // Used to convert 24hr format to 12hr format with AM/PM values
+    private void updateTime(int hours, int mins) {
+
+        String timeSet = "";
+        if (hours > 12) {
+            hours -= 12;
+            timeSet = "PM";
+        } else if (hours == 0) {
+            hours += 12;
+            timeSet = "AM";
+        } else if (hours == 12)
+            timeSet = "PM";
+        else
+            timeSet = "AM";
+
+
+        String minutes = "";
+        if (mins < 10)
+            minutes = "0" + mins;
+        else
+            minutes = String.valueOf(mins);
+
+        // Append in a StringBuilder
+        String aTime = new StringBuilder().append(hours).append(':')
+                .append(minutes).append(" ").append(timeSet).toString();
+        if(whichBox==1) {
+            morningTime.setText(aTime);
+            editor.putString(Main.MORNINGTIME, aTime);
+            editor.apply();
+        }
+        else if(whichBox==2) {
+            noonTime.setText(aTime);
+            editor.putString(Main.NOONTIME,aTime);
+            editor.apply();
+        }
+        else if(whichBox==3) {
+            eveningTime.setText(aTime);
+            editor.putString(Main.EVENINGTIME,aTime);
+            editor.apply();
+        }
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +142,7 @@ public class Settings extends AppCompatActivity {
 
 
         /**Notification**/
-        final SharedPreferences.Editor editor=sharedpreferences.edit();
+        editor=sharedpreferences.edit();
         enableSwitch=(Switch)findViewById(R.id.switch1);
         enableSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -87,6 +170,35 @@ public class Settings extends AppCompatActivity {
         noonTime.setText(nTime);
         eveningTime=(TextView)findViewById(R.id.eveningTimenum);
         eveningTime.setText(eTime);
+
+
+        morningLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Toast.makeText(context, "Morning", Toast.LENGTH_LONG).show();
+                whichBox=1;
+                showDialog(TIME_DIALOG_ID);
+            }
+        });
+
+        noonLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Toast.makeText(context,"Noon",Toast.LENGTH_LONG).show();
+                whichBox=2;
+                showDialog(TIME_DIALOG_ID);
+            }
+        });
+
+        eveningLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Toast.makeText(context,"Evening",Toast.LENGTH_LONG).show();
+                whichBox=3;
+                showDialog(TIME_DIALOG_ID);
+            }
+        });
+
         /**END**/
         newsChannel= (TextView) findViewById(R.id.newsChannel);
         newsChannel.setOnClickListener(new View.OnClickListener() {
@@ -138,7 +250,6 @@ public class Settings extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                SharedPreferences.Editor editor = sharedpreferences.edit();
                                 switch (which) {
                                     case 0:
                                         editor.putString(Main.APPLICATIONORIENTATION, "A");
@@ -147,14 +258,12 @@ public class Settings extends AppCompatActivity {
                                         recreate();
                                         break;
                                     case 1:
-                                        editor = sharedpreferences.edit();
                                         editor.putString(Main.APPLICATIONORIENTATION, "P");
                                         newsOrientationType.setText("Portrait");
                                         recreate();
                                         editor.apply();
                                         break;
                                     case 2:
-                                        editor = sharedpreferences.edit();
                                         editor.putString(Main.APPLICATIONORIENTATION, "L");
                                         newsOrientationType.setText("Landscape");
                                         recreate();
@@ -185,13 +294,7 @@ public class Settings extends AppCompatActivity {
 
                 arrayAdapter.add("BackgroundToForeground Transformer");
 
-                arrayAdapter.add("CubeIn Transformer");
-
                 arrayAdapter.add("DepthPage Transformer");
-
-                arrayAdapter.add("FlipHorizontal Transformer");
-
-                arrayAdapter.add("FlipVertical Transformer");
 
                 arrayAdapter.add("ForegroundToBackground Transformer");
 
@@ -223,7 +326,6 @@ public class Settings extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                SharedPreferences.Editor editor = sharedpreferences.edit();
                                 switch (which) {
                                     case 0:
                                         editor.putString(Main.ANIMATIONTYPE, "CubeOut");
@@ -232,100 +334,80 @@ public class Settings extends AppCompatActivity {
                                         recreate();
                                         break;
                                     case 1:
-                                        editor = sharedpreferences.edit();
                                         editor.putString(Main.ANIMATIONTYPE, "Accordion");
                                         newsOrientationType.setText("Accordion Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
                                     case 2:
-                                        editor = sharedpreferences.edit();
                                         editor.putString(Main.ANIMATIONTYPE, "BackgroundToForeground");
                                         newsOrientationType.setText("BackgroundToForeground Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
-                                    case 3:editor = sharedpreferences.edit();
-                                        editor.putString(Main.ANIMATIONTYPE, "CubeIn");
-                                        newsOrientationType.setText("CubeIn Transformer");
-                                        recreate();
-                                        editor.apply();
-                                        break;
-                                    case 4:editor = sharedpreferences.edit();
+                                    case 3:
                                         editor.putString(Main.ANIMATIONTYPE, "DepthPage");
                                         newsOrientationType.setText("DepthPage Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
-                                    case 5:editor = sharedpreferences.edit();
-                                        editor.putString(Main.ANIMATIONTYPE, "FlipHorizontal");
-                                        newsOrientationType.setText("FlipHorizontal Transformer");
-                                        recreate();
-                                        editor.apply();
-                                        break;
-                                    case 6:editor = sharedpreferences.edit();
-                                        editor.putString(Main.ANIMATIONTYPE, "FlipVertical");
-                                        newsOrientationType.setText("FlipVertical Transformer");
-                                        recreate();
-                                        editor.apply();
-                                        break;
-                                    case 7:editor = sharedpreferences.edit();
+                                    case 4:
                                         editor.putString(Main.ANIMATIONTYPE, "ForegroundToBackground");
                                         newsOrientationType.setText("ForegroundToBackground Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 8:editor = sharedpreferences.edit();
+                                    case 5:
                                         editor.putString(Main.ANIMATIONTYPE, "RotateDown");
                                         newsOrientationType.setText("RotateDown Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 9:editor = sharedpreferences.edit();
+                                    case 6:
                                         editor.putString(Main.ANIMATIONTYPE, "RotateUp");
                                         newsOrientationType.setText("RotateUp Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 10:editor = sharedpreferences.edit();
+                                    case 7:
                                         editor.putString(Main.ANIMATIONTYPE, "ScaleInOut");
                                         newsOrientationType.setText("ScaleInOut Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 11:editor = sharedpreferences.edit();
+                                    case 8:
                                         editor.putString(Main.ANIMATIONTYPE, "Stack");
                                         newsOrientationType.setText("Stack Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 12:editor = sharedpreferences.edit();
+                                    case 9:
                                         editor.putString(Main.ANIMATIONTYPE, "Tablet");
                                         newsOrientationType.setText("Tablet Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 13:editor = sharedpreferences.edit();
+                                    case 10:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomIn");
                                         newsOrientationType.setText("ZoomIn Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 14:editor = sharedpreferences.edit();
+                                    case 11:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomOutSlide");
                                         newsOrientationType.setText("ZoomOutSlide Transformer");
                                         recreate();
                                         editor.apply();
                                         break;
 
-                                    case 15:editor = sharedpreferences.edit();
+                                    case 12:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomOut");
                                         newsOrientationType.setText("ZoomOut Transformer");
                                         recreate();

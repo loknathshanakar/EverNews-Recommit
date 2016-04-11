@@ -74,6 +74,7 @@ import java.net.SocketTimeoutException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
@@ -325,6 +326,16 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     @Override
     public void onResume() {
         super.onResume();  // Always call the superclass method first
+
+        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+        final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
+        if(sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==1)
+            startAlarm(viewGroup);
+        else
+            cancelAlarm(viewGroup);
+
+
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
         mTracker = application.getDefaultTracker();
         mTracker.setScreenName("In Main Screen");
@@ -336,6 +347,60 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
     }
 
+    private PendingIntent pendingIntent;
+    private AlarmManager managerM,managerN,managerE;
+    public Date convertStr2Date(String dateString){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm aa");
+        Date convertedDate = new Date();
+        try {
+            convertedDate = dateFormat.parse(dateString);
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return(convertedDate);
+    }
+    public void startAlarm(View view) {
+        managerM = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        managerN = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        managerE = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+
+
+        Calendar calendarM = Calendar.getInstance();
+        Calendar calendarN = Calendar.getInstance();
+        Calendar calendarE = Calendar.getInstance();
+        Date d1=convertStr2Date(sharedpreferences.getString(Main.MORNINGTIME, "00:00 AM"));
+        Date d2=convertStr2Date(sharedpreferences.getString(Main.NOONTIME, "00:00 AM"));
+        Date d3=convertStr2Date(sharedpreferences.getString(Main.EVENINGTIME,"00:00 AM"));
+
+        calendarM.set(Calendar.HOUR_OF_DAY, d1.getHours()); // For 1 PM or 2 PM
+        calendarM.set(Calendar.MINUTE, d1.getMinutes());
+        calendarM.set(Calendar.SECOND, 0);
+        calendarM.add(Calendar.DAY_OF_YEAR, 1);
+
+        calendarN.set(Calendar.HOUR_OF_DAY, d2.getHours()); // For 1 PM or 2 PM
+        calendarN.set(Calendar.MINUTE, d2.getMinutes());
+        calendarN.set(Calendar.SECOND, 0);
+        calendarN.add(Calendar.DAY_OF_YEAR, 1);
+
+        calendarE.set(Calendar.HOUR_OF_DAY, d3.getHours()); // For 1 PM or 2 PM
+        calendarE.set(Calendar.MINUTE, d3.getMinutes());
+        calendarE.set(Calendar.SECOND, 0);
+        calendarE.add(Calendar.DAY_OF_YEAR, 1);
+        managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+        managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+        managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
+        Toast.makeText(this, "Push notification Enabled", Toast.LENGTH_SHORT).show();
+    }
+
+    public void cancelAlarm(View view) {
+        if (managerN != null && pendingIntent!=null ) {
+            managerN.cancel(pendingIntent);
+            Toast.makeText(this, "Push Notification Disabled Canceled", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -343,7 +408,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         setContentView(R.layout.main);
 
         //Thread.setDefaultUncaughtExceptionHandler(handleAppCrash);
-
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
         mTracker = application.getDefaultTracker();
         mTracker.setScreenName("In Main Screen");
@@ -459,7 +523,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 @Override
                 public boolean onLongClick(final View v) {
                     if (x > mandetTab) {
-                        final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(Uri.parse("https://developers.facebook.com")).build();
+                        //final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(Uri.parse("https://developers.facebook.com")).build();
                         AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
                         builderSingle.setIcon(R.drawable.ic_launcher);
                         builderSingle.setTitle("Remove Tab");

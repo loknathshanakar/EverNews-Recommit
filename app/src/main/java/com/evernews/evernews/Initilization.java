@@ -355,7 +355,7 @@ public class Initilization extends AppCompatActivity {
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
                         Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                         Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
                     }
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                         Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
