@@ -125,7 +125,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public static String ISREGISTRED="ISREGISTRED";
     public static String LOGGEDIN="LOGGEDIN";
     public static String NEWCHANNELADDED="NEWCHANNELADDED";
-    public static String ARTICLEFONTSIZE="ARTICLEFONTSIZE";
     public static String APPLICATIONORIENTATION="APPLICATIONORIENTATION";
     public static String ERASETABLE_1="ERASETABLE_1";
     public static String ANIMATIONTYPE="ANIMATIONTYPE";
@@ -137,6 +136,10 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public static String ONALRAMCHANGED1="ONALRAMCHANGED1";
     public static String ONALRAMCHANGED2="ONALRAMCHANGED2";
     public static String ONALRAMCHANGED3="ONALRAMCHANGED3";
+    public static String FONTSIZE="FONTSIZE";
+    public static String SLIDERMAX="SLIDERMAX";
+    public static String SLIDERCURRENT="SLIDERCURRENT";
+    public static int fontSize=18;
     public static String uniqueID="";
     SQLiteDatabase db;
     ShareDialog shareDialog;
@@ -396,9 +399,20 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
 
         if(sharedpreferences.getBoolean(NEWCHANNELADDED,false)) {
-            Toast.makeText(context,"Channel change detected...Updating data please wait ait...",Toast.LENGTH_LONG).show();
-            new GetNewsTask().execute();
+            Toast.makeText(context,"Channel change detected...Updating data please wait as changes are applied...",Toast.LENGTH_LONG).show();
+            new GetNewsTaskRestart().execute();
         }
+
+        /**RESTORE BRIGHTNESS**/
+        {
+            float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,250);
+            float BackLightValue = (float)arg1/100;
+            int curBrightnessValue=0;
+            WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
+            layoutParams.screenBrightness = BackLightValue; // Set Value
+            getWindow().setAttributes(layoutParams); // Set params
+        }
+        /**END**/
     }
 
     private PendingIntent pendingIntent1,pendingIntent2,pendingIntent3;
@@ -475,8 +489,10 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     private void UnregisterAlarmBroadcast()
     {
         if(alarmManager1!=null && myPendingIntent1!=null) {
-            alarmManager1.cancel(myPendingIntent1);
-            getBaseContext().unregisterReceiver(myBroadcastReceiver);
+            try {
+                alarmManager1.cancel(myPendingIntent1);
+                getBaseContext().unregisterReceiver(myBroadcastReceiver);
+            }catch(Exception e){}
         }
     }
 
@@ -741,16 +757,24 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         switch (item.getItemId()) {
             case R.id.action_brightness:
                 LayoutInflater linf = LayoutInflater.from(context);
-
                 final View inflator = linf.inflate(R.layout.brightness_dialog, null);
-
                 final AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setView(inflator).show();
+                final SharedPreferences.Editor editor=sharedpreferences.edit();
                 builder.setCancelable(true);
                 SeekBar sk=(SeekBar)inflator.findViewById(R.id.seekBar);
+                editor.putFloat(Main.SLIDERMAX,sk.getMax());
+                editor.apply();
                 final TextView tv=(TextView)inflator.findViewById(R.id.textView);
+                {
+                    float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,255);
+                    float BackLightValue = (float)arg1/100;
+                    WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
+                    layoutParams.screenBrightness = BackLightValue; // Set Value
+                    getWindow().setAttributes(layoutParams); // Set params
+                    sk.setProgress((int)arg1);
+                }
                 sk.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
                         // TODO Auto-generated method stub
@@ -771,6 +795,8 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
                         layoutParams.screenBrightness = BackLightValue; // Set Value
                         getWindow().setAttributes(layoutParams); // Set params
+                        editor.putFloat(Main.SLIDERCURRENT,arg1);
+                        editor.apply();
                     }
                 });
                 return true;
@@ -886,7 +912,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
                 content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
                 content=content.replace("\n","$$$$");
-                content=content.replace("\n","$$$$");
             }
             catch(Exception e)
             {
@@ -913,7 +938,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     Toast.makeText(getApplicationContext(), "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
             }
             if (content != null) {
-                parseResults(content);
+                parseResultsRefresh(content);
                 final ProgressDialog progressdlg = new ProgressDialog(context);
                 progressdlg.setMessage("Updating Application");
                 progressdlg.setTitle("Updating contents,Please Wait...");
@@ -927,7 +952,13 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     }
 
                     public void onFinish() {
-                        recreate();
+                        //recreate();
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putBoolean(Main.NEWCHANNELADDED, false);
+                        editor.apply();
+                        Intent i=new Intent(Main.this,Initilization.class);
+                        finish();
+                        startActivity(i);
                         progressdlg.dismiss();
                     }
                 }.start();
@@ -994,17 +1025,18 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressdlg.setIndeterminate(true);
                 progressdlg.show();
-                SharedPreferences.Editor editor = sharedpreferences.edit();/**BROKEN**/
-                editor.putBoolean(Main.NEWCHANNELADDED, false);
-                editor.apply();
                 new CountDownTimer(1000, 1000) {
                     public void onTick(long millisUntilFinished) {
                     }
 
                     public void onFinish() {
-                        Intent i = context.getPackageManager().getLaunchIntentForPackage( context.getPackageName() );
+                        /*Intent i = context.getPackageManager().getLaunchIntentForPackage( context.getPackageName() );
                         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(i);*/
+                        Intent i=new Intent(Main.this,Initilization.class);
                         startActivity(i);
+                        progressdlg.dismiss();
+                        finish();
                     }
                 }.start();
                 //super.onPostExecute(aVoid);
@@ -1214,6 +1246,168 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
         Initilization.addOnList.removeAll(Arrays.asList(null, ""));
         Initilization.addOnListTOCompare.clear();
+    }
+
+
+    public void parseResultsRefresh(String response)
+    {
+        Initilization.resultArrayLength=0;
+        ContentValues values = new ContentValues();
+        String path=Initilization.DB_PATH+Initilization.DB_NAME;
+        db=SQLiteDatabase.openDatabase(path,null,0);
+        /**Clear off resultArray**/
+        for(int i=0;i<10000;i++){
+            for(int j=0;j<15;j++){
+                Initilization.resultArray[i][j]="NULL";
+            }
+        }
+        /**END**/
+        org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
+        for(int i=0;i<15;i++)
+        {
+            if(i==Initilization.CategoryId) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryId")) {
+                    Initilization.resultArray[index][Initilization.CategoryId]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.Category) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("Category")) {
+                    Initilization.resultArray[index][Initilization.Category]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.DisplayOrder) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("DisplayOrder")) {
+                    Initilization.resultArray[index][Initilization.DisplayOrder]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.RSSTitle) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSTitle")) {
+                    Initilization.resultArray[index][Initilization.RSSTitle]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.RSSURL) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSURL")) {
+                    Initilization.resultArray[index][Initilization.RSSURL]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.RSSUrlId) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {
+                    Initilization.resultArray[index][Initilization.RSSUrlId]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.NewsId ) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsId")) {
+                    Initilization.resultArray[index][Initilization.NewsId]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.NewsTitle ) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsTitle")) {
+                    Initilization.resultArray[index][Initilization.NewsTitle]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.Summary) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("Summary")) {
+                    Initilization.resultArray[index][Initilization.Summary]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.NewsImage) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsImage")) {
+                    Initilization.resultArray[index][Initilization.NewsImage]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.NewsDate) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDate")) {
+                    Initilization.resultArray[index][Initilization.NewsDate]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.NewsDisplayOrder) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDisplayOrder")) {
+                    Initilization.resultArray[index][Initilization.NewsDisplayOrder]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.CategoryorNews) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryorNews")) {
+                    Initilization.resultArray[index][Initilization.CategoryorNews]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.FullText) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("FullText")) {
+                    Initilization.resultArray[index][Initilization.FullText]=e.text();
+                    index++;
+                }
+            }
+            if(i==Initilization.NewsUrl) {
+                int index=0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsUrl")) {
+                    Initilization.resultArray[index][Initilization.NewsUrl]=e.text();
+                    index++;
+                }
+            }
+        }
+
+        for (int i = 0; i < 10000; i++) {
+            if(Initilization.resultArray[i][Initilization.CategoryId].contains("NULL")||Initilization.resultArray[i][Initilization.NewsId].contains("NULL")||Initilization.resultArray[i][Initilization.FullText].contains("NULL")){
+                continue;
+            }
+            values.put(Initilization.CATEGORYID,Initilization.resultArray[i][Initilization.CategoryId]);
+            values.put(Initilization.CATEGORYNAME,Initilization.resultArray[i][Initilization.Category]);
+            values.put(Initilization.DISPLAYORDER,Initilization.resultArray[i][Initilization.DisplayOrder]);
+            values.put(Initilization.RSSTITLE,Initilization.resultArray[i][Initilization.RSSTitle]);
+            values.put(Initilization.RSSURL_DB,Initilization.resultArray[i][Initilization.RSSURL]);
+            values.put(Initilization.RSSURLID,Initilization.resultArray[i][Initilization.RSSUrlId]);
+            values.put(Initilization.NEWSID,Initilization.resultArray[i][Initilization.NewsId]);
+            values.put(Initilization.NEWSTITLE,Initilization.resultArray[i][Initilization.NewsTitle]);
+            values.put(Initilization.SUMMARY,Initilization.resultArray[i][Initilization.Summary]);
+            values.put(Initilization.NEWSIMAGE,Initilization.resultArray[i][Initilization.NewsImage]);
+            values.put(Initilization.NEWSDATE,Initilization.resultArray[i][Initilization.NewsDate]);
+            values.put(Initilization.NEWSDISPLAYORDER,Initilization.resultArray[i][Initilization.NewsDisplayOrder]);
+            values.put(Initilization.CATEGORYORNEWS,Initilization.resultArray[i][Initilization.CategoryorNews]);
+            values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
+            values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
+            if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
+                values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
+            else
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT"+Initilization.resultArray[i][Initilization.NewsId]);
+
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                long timeInMillisSinceEpoch = date.getTime();
+                long timeInSecondsSinceEpoch = timeInMillisSinceEpoch / (60);
+                values.put(Initilization.RESERVED_3, timeInSecondsSinceEpoch);
+            }catch(ParseException e){
+                values.put(Initilization.RESERVED_3,0);
+            }
+            db.insert(Initilization.TABLE_NAME, null, values);
+        }
+        db.close(); // Closing database connection
     }
 
     class GetCategoryList extends AsyncTask<Void,Void,Void>

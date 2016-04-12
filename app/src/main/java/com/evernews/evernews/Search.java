@@ -3,6 +3,7 @@ package com.evernews.evernews;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -40,6 +42,24 @@ public class Search extends AppCompatActivity {
     GridView gridView;
     Context context;
     List <ItemObject> itemCollection=new ArrayList<>();
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        /**RESTORE BRIGHTNESS**/
+        {
+            SharedPreferences sharedpreferences = getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
+            float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,250);
+            float BackLightValue = (float)arg1/100;
+            int curBrightnessValue=0;
+            WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
+            layoutParams.screenBrightness = BackLightValue; // Set Value
+            getWindow().setAttributes(layoutParams); // Set params
+        }
+        /**END**/
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -134,7 +154,9 @@ public class Search extends AppCompatActivity {
                             iIndex = Xml.indexOf("<FullText>") + 10;
                             eIndex = Xml.indexOf("</FullText>");
                             if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                                news = "<p align=\"justify\"><p style=\"font-size:18px\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p></p>";
+                                SharedPreferences sharedpreferences=getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
+                                Main.fontSize=sharedpreferences.getInt(Main.FONTSIZE,18);
+                                news = "<p align=\"justify\"><p style=\"font-size:"+Main.fontSize+"px\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p></p>";
                             }
                             iIndex = Xml.indexOf("<NewsTitle>") + 11;
                             eIndex = Xml.indexOf("</NewsTitle>");

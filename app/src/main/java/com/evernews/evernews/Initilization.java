@@ -95,6 +95,7 @@ public class Initilization extends AppCompatActivity {
             editor.putInt(Main.ONALRAMCHANGED1,1);
             editor.putInt(Main.ONALRAMCHANGED2,1);
             editor.putInt(Main.ONALRAMCHANGED3,1);
+            editor.putInt(Main.FONTSIZE,18);
             editor.apply();
         }
         new GetNewsTask().execute();

@@ -876,6 +876,7 @@ public class ReusableFragment extends Fragment {
                 Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
                 String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId=" + Initilization.androidId;//Over ride but should be Main.androidId
                 content = Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+                content=content.replace("\n","$$$$");
             } catch (Exception e) {
                 if (e instanceof SocketTimeoutException) {
                     ExceptionCode = 1;

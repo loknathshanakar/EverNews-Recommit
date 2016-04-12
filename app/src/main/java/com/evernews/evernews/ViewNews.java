@@ -30,6 +30,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
@@ -159,6 +160,22 @@ public class ViewNews extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        /**RESTORE BRIGHTNESS**/
+        {
+            float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,250);
+            float BackLightValue = (float)arg1/100;
+            int curBrightnessValue=0;
+            WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
+            layoutParams.screenBrightness = BackLightValue; // Set Value
+            getWindow().setAttributes(layoutParams); // Set params
+        }
+        /**END**/
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -269,7 +286,8 @@ public class ViewNews extends AppCompatActivity {
                  newsImage ="<br><br><center><img src=\""+newsImage+""+"\" alt=\"No Image\" style=\"max-width:400px;max-height:400px;\"></center><br><br>";
             else
                 newsImage="";
-            String news="<p align=\"justify\"><p style=\"font-size:18px\">"+fullText+"</p></p>";
+            Main.fontSize=sharedpreferences.getInt(Main.FONTSIZE,18);
+            String news="<p align=\"justify\"><p style=\"font-size:"+Main.fontSize+"px\">"+fullText+"</p></p>";
             finalHtml = source + title + newsImage + news;
             String Temp = finalHtml;
             Temp = Temp.replaceAll("(\r\n|\r|\n|\n\r)", "<br>");
@@ -360,7 +378,8 @@ public class ViewNews extends AppCompatActivity {
                         eIndex = Xml.indexOf("</FullText>");
                         String source = "", title = "", news = "";
                         if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex) {
-                            news = "<p align=\"justify\"><p style=\"font-size:18px\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p></p>";
+                            Main.fontSize=sharedpreferences.getInt(Main.FONTSIZE,18);
+                            news = "<p align=\"justify\"><p style=\"font-size:"+Main.fontSize+"px\">"+Xml.copyValueOf(Xmlchar, iIndex, (eIndex - iIndex))+"</p></p>";
                         }
                         iIndex = Xml.indexOf("<NewsTitle>") + 11;
                         eIndex = Xml.indexOf("</NewsTitle>");

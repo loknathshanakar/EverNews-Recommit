@@ -20,6 +20,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
@@ -33,7 +34,7 @@ import java.util.List;
 public class Settings extends AppCompatActivity {
     TextView newsChannel, newsOrientationType,newsOrientation, newsFont, newsSupport, newsReview, newsRecomend, newsPolicy, newsTerms, newsCredits, newsWeb, newsVersion,animationType,morningTime,noonTime,eveningTime;
     //private static Activity context;
-    RelativeLayout orientationListiner,logoutlistiner,animationLayout,morningLayout,noonLayout,eveningLayout;
+    RelativeLayout orientationListiner,logoutlistiner,animationLayout,morningLayout,noonLayout,eveningLayout,fontLayout;
     String mTime="",nTime="",eTime="";
     Switch enableSwitch;
     int enabled=-1;
@@ -120,6 +121,20 @@ public class Settings extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        /**RESTORE BRIGHTNESS**/
+        {
+            float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,250);
+            float BackLightValue = (float)arg1/100;
+            int curBrightnessValue=0;
+            WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
+            layoutParams.screenBrightness = BackLightValue; // Set Value
+            getWindow().setAttributes(layoutParams); // Set params
+        }
+        /**END**/
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,6 +158,67 @@ public class Settings extends AppCompatActivity {
 
 
 
+        /**Font Settings**/
+        fontLayout=(RelativeLayout)findViewById(R.id.fontSizeListiner);
+        newsFont=(TextView)findViewById(R.id.fontSize);
+        newsFont.setText(sharedpreferences.getInt(Main.FONTSIZE,-1)+"px");
+        fontLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
+                builderSingle.setIcon(R.drawable.ic_launcher);
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
+                builderSingle.setTitle("Select font size");
+                arrayAdapter.add("16px");
+                arrayAdapter.add("18px");
+                arrayAdapter.add("20px");
+                arrayAdapter.add("22px");
+                builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                builderSingle.setAdapter(
+                        arrayAdapter,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which) {
+                                    case 0:
+                                        editor.putInt(Main.FONTSIZE, 16);
+                                        newsFont.setText("16px");
+                                        editor.apply();
+                                        break;
+                                    case 1:
+                                        editor.putInt(Main.FONTSIZE, 18);
+                                        newsFont.setText("18px");
+                                        editor.apply();
+                                        editor.apply();
+                                        break;
+                                    case 2:
+                                        editor.putInt(Main.FONTSIZE, 20);
+                                        newsFont.setText("20px");
+                                        editor.apply();
+                                        editor.apply();
+                                        break;
+                                    case 3:
+                                        editor.putInt(Main.FONTSIZE, 22);
+                                        newsFont.setText("22px");
+                                        editor.apply();
+                                        break;
+                                    case 4:
+                                        break;
+                                    case 5:
+                                        break;
+                                }
+                            }
+                        });
+                builderSingle.show();
+            }
+        });
+        /**END**/
         /**Notification**/
         editor=sharedpreferences.edit();
         enableSwitch=(Switch)findViewById(R.id.switch1);
@@ -287,13 +363,18 @@ public class Settings extends AppCompatActivity {
         });
 
         animationLayout=(RelativeLayout)findViewById(R.id.animationType);
+        animationType=(TextView)findViewById(R.id.animation_type);
+        animationType.setText("Page change type : "+sharedpreferences.getString(Main.ANIMATIONTYPE,"CubeOut Transformer"));
         animationLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
                 builderSingle.setIcon(R.drawable.ic_launcher);
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
-                builderSingle.setTitle("CubeOut Transformer");
+                builderSingle.setTitle("Page change animation");
+
+                arrayAdapter.add("CubeOut Transformer");
+
                 arrayAdapter.add("Accordion Transformer");
 
                 arrayAdapter.add("BackgroundToForeground Transformer");
@@ -333,88 +414,75 @@ public class Settings extends AppCompatActivity {
                                 switch (which) {
                                     case 0:
                                         editor.putString(Main.ANIMATIONTYPE, "CubeOut");
-                                        newsOrientationType.setText("CubeOut Transformer");
+                                        animationType.setText("Page change type : CubeOut Transformer");
                                         editor.apply();
-                                        recreate();
                                         break;
                                     case 1:
                                         editor.putString(Main.ANIMATIONTYPE, "Accordion");
-                                        newsOrientationType.setText("Accordion Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : Accordion Transformer");
                                         editor.apply();
                                         break;
                                     case 2:
                                         editor.putString(Main.ANIMATIONTYPE, "BackgroundToForeground");
-                                        newsOrientationType.setText("BackgroundToForeground Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : BackgroundToForeground Transformer");
                                         editor.apply();
                                         break;
                                     case 3:
                                         editor.putString(Main.ANIMATIONTYPE, "DepthPage");
-                                        newsOrientationType.setText("DepthPage Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : DepthPage Transformer");
                                         editor.apply();
                                         break;
                                     case 4:
                                         editor.putString(Main.ANIMATIONTYPE, "ForegroundToBackground");
-                                        newsOrientationType.setText("ForegroundToBackground Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : ForegroundToBackground Transformer");
                                         editor.apply();
                                         break;
 
                                     case 5:
                                         editor.putString(Main.ANIMATIONTYPE, "RotateDown");
-                                        newsOrientationType.setText("RotateDown Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : RotateDown Transformer");
                                         editor.apply();
                                         break;
 
                                     case 6:
                                         editor.putString(Main.ANIMATIONTYPE, "RotateUp");
-                                        newsOrientationType.setText("RotateUp Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : RotateUp Transformer");
                                         editor.apply();
                                         break;
 
                                     case 7:
                                         editor.putString(Main.ANIMATIONTYPE, "ScaleInOut");
-                                        newsOrientationType.setText("ScaleInOut Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : ScaleInOut Transformer");
                                         editor.apply();
                                         break;
 
                                     case 8:
                                         editor.putString(Main.ANIMATIONTYPE, "Stack");
-                                        newsOrientationType.setText("Stack Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : Stack Transformer");
                                         editor.apply();
                                         break;
 
                                     case 9:
                                         editor.putString(Main.ANIMATIONTYPE, "Tablet");
-                                        newsOrientationType.setText("Tablet Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : Tablet Transformer");
                                         editor.apply();
                                         break;
 
                                     case 10:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomIn");
-                                        newsOrientationType.setText("ZoomIn Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : ZoomIn Transformer");
                                         editor.apply();
                                         break;
 
                                     case 11:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomOutSlide");
-                                        newsOrientationType.setText("ZoomOutSlide Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : ZoomOutSlide Transformer");
                                         editor.apply();
                                         break;
 
                                     case 12:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomOut");
-                                        newsOrientationType.setText("ZoomOut Transformer");
-                                        recreate();
+                                        animationType.setText("Page change type : ZoomOut Transformer");
                                         editor.apply();
                                         break;
                                 }

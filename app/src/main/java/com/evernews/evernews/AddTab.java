@@ -20,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -103,6 +104,24 @@ public class AddTab extends AppCompatActivity {
             }
         }
     }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        /**RESTORE BRIGHTNESS**/
+        {
+            SharedPreferences sharedpreferences = getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
+            float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,250);
+            float BackLightValue = (float)arg1/100;
+            int curBrightnessValue=0;
+            WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
+            layoutParams.screenBrightness = BackLightValue; // Set Value
+            getWindow().setAttributes(layoutParams); // Set params
+        }
+        /**END**/
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
