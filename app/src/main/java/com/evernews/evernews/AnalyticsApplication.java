@@ -3,10 +3,10 @@ package com.evernews.evernews;
 /**
  * Created by Loknath Shankar on 3/24/2016.
  */
+
 import android.app.Application;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.android.gms.analytics.Logger;
 import com.google.android.gms.analytics.Tracker;
 
 

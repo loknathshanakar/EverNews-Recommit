@@ -5,8 +5,6 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,15 +12,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Environment;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -31,7 +25,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -45,7 +38,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -68,35 +60,21 @@ import com.ToxicBakery.viewpager.transforms.TabletTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomInTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutSlideTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutTranformer;
-import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.StandardExceptionParser;
 import com.google.android.gms.analytics.Tracker;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Random;
-import java.util.UUID;
 
 public class Main extends AppCompatActivity implements SignUp.OnFragmentInteractionListener,PostArticle.OnFragmentInteractionListener {
     /**
@@ -818,6 +796,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 }
                 else{
                     Toast.makeText(context,"News channel list is loading please try again after some time",Toast.LENGTH_LONG).show();
+                    new GetCategoryList().execute();
                 }
                 return true;
 
@@ -923,6 +902,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     ExceptionCode=2;
                     return null;
                 }
+                ExceptionCode=3;
                 e.printStackTrace();
             }
             return null;
@@ -933,9 +913,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             progress.setVisibility(View.GONE);
             if (ExceptionCode > 0) {
                 if (ExceptionCode == 1)
-                    Toast.makeText(getApplicationContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
                 if (ExceptionCode == 2)
-                    Toast.makeText(getApplicationContext(), "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+                if(ExceptionCode ==3)
+                    Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
             }
             if (content != null) {
                 parseResultsRefresh(content);
@@ -1410,7 +1392,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         db.close(); // Closing database connection
     }
 
-    class GetCategoryList extends AsyncTask<Void,Void,Void>
+    public static  class GetCategoryList extends AsyncTask<Void,Void,Void>
     {
         String content;
         int ExceptionCode=0;
@@ -1426,7 +1408,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         {
             try
             {
-                String fetchLink="http://rssapi.psweb.in/everapi.asmx/GetNewsChannelList";//Over ride but should be Main.androidId
+                String fetchLink="http://rssapi.psweb.in/everapi.asmx/GetNewsChannelList";
                 content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
             }
             catch(Exception e)
@@ -1449,18 +1431,18 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         {
             if(content!=null)
             {
-                String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;",">").replaceAll("&amp;","&");
+                String result = content.replaceAll("&lt;", "<").replaceAll("&gt;",">").replaceAll("&amp;","&");
                 parseResultsList(result);
             }
             super.onPostExecute(aVoid);
         }
     }
 
-    public void parseResultsList(String response)
+    public static void parseResultsList(String response)
     {
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
         try {
-            for (int i = 0; i < 15; i++) {
+            for (int i = 0; i < 8; i++) {
                 if (i == 0) {
                     int index = 0;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {

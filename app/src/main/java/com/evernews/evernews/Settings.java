@@ -1,8 +1,6 @@
 package com.evernews.evernews;
 
-import android.app.AlarmManager;
 import android.app.Dialog;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -161,7 +159,7 @@ public class Settings extends AppCompatActivity {
         /**Font Settings**/
         fontLayout=(RelativeLayout)findViewById(R.id.fontSizeListiner);
         newsFont=(TextView)findViewById(R.id.fontSize);
-        newsFont.setText(sharedpreferences.getInt(Main.FONTSIZE,-1)+"px");
+        newsFont.setText(sharedpreferences.getInt(Main.FONTSIZE,18)+"px");
         fontLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -285,9 +283,17 @@ public class Settings extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    Intent iii = new Intent(Settings.this, AddTab.class);
-                    iii.putExtra("CALLER", "SETTINGS");
-                    startActivity(iii);
+                    boolean override=true;
+                    if(Main.validCategory ||override) {
+                        Intent iii = new Intent(Settings.this, AddTab.class);
+                        iii.putExtra("CALLER", "SETTINGS");
+                        finish();
+                        startActivity(iii);
+                    }
+                    else {
+                        Toast.makeText(context,"News channel list is loading please try again after some time",Toast.LENGTH_LONG).show();
+                        new Main.GetCategoryList().execute();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

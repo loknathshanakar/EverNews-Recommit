@@ -8,7 +8,6 @@
     tools:context="com.evernews.evernews.Settings"
     tools:showIn="@layout/activity_settings">
     <ScrollView
-        android:id="@+id/textAreaScroller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fillViewport="true"
@@ -140,7 +139,6 @@
                 android:layout_height="1dp"
                 android:background="@color/accent" />
             <TextView
-                android:id="@+id/newsHead"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10sp"
@@ -222,7 +220,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <TextView
-                    android:id="@+id/Logout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10sp"
@@ -237,7 +234,6 @@
                 android:background="@color/accent" />
 
             <TextView
-                android:id="@+id/newsGen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10sp"
@@ -256,7 +252,6 @@
                 android:orientation="horizontal"
                 android:id="@+id/orientation_listiner">
                 <TextView
-                    android:id="@+id/orientation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="15sp"
@@ -286,7 +281,6 @@
                 android:layout_height="1dp"
                 android:background="@color/accent" />
             <TextView
-                android:id="@+id/newsAbout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10sp"
@@ -395,7 +389,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
                 <TextView
-                    android:id="@+id/newsVersion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10sp"

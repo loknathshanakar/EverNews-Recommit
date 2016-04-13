@@ -49,7 +49,6 @@
         android:gravity="top|right">
 
         <ImageView
-            android:id="@+id/flag"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_margin="2dp"

@@ -13,15 +13,18 @@ import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
+
 import java.net.SocketTimeoutException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.UUID;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class Initilization extends AppCompatActivity {
     public static final int CategoryId = 0;
@@ -293,6 +296,12 @@ public class Initilization extends AppCompatActivity {
         }
         db.close(); // Closing database connection
 
+
+        Set<String> hs = new LinkedHashSet<>();
+        hs.addAll(addOnList);
+        addOnList.clear();
+        addOnList.addAll(hs);
+
         Initilization.addOnList.add(2, "EverYou");
         Initilization.addOnList.add(3, "YouView");
         Initilization.getAddOnListRSSID.add(2, "NULL");
@@ -373,6 +382,11 @@ public class Initilization extends AppCompatActivity {
             } catch (Exception ee) {/****/}
         }
         db.close(); // Closing database connection
+
+        Set<String> hs = new LinkedHashSet<>();
+        hs.addAll(addOnList);
+        addOnList.clear();
+        addOnList.addAll(hs);
 
         Initilization.addOnList.add(2, "EverYou");
         Initilization.addOnList.add(3, "YouView");

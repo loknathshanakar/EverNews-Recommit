@@ -24,14 +24,11 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.ToxicBakery.viewpager.transforms.AccordionTransformer;
+
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.SocketTimeoutException;
 
 public class AddTab extends AppCompatActivity {
@@ -137,6 +134,9 @@ public class AddTab extends AppCompatActivity {
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        mViewPager.setPageTransformer(true, new AccordionTransformer());
+
         context=this;
         getSupportActionBar().setLogo(R.drawable.logo);
 
@@ -302,7 +302,7 @@ public class AddTab extends AppCompatActivity {
             else if(position==1){
                 return NewsAddListFragment.newInstanceREE(position, "Popular");
             }else{
-                return NewsAddListFragment.newInstanceREE(position, "Categories");
+                return ExpandCategoryView.newInstance(position, "Categories");
             }
         }
 

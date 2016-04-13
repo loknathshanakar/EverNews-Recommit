@@ -3,7 +3,8 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="5dip">
+    android:padding="5dip"
+    android:layout_marginLeft="@dimen/padding_for_exp_list_view">
 
     <!--  ListRow Left sied Thumbnail image -->
     <LinearLayout
@@ -15,9 +16,9 @@
         android:padding="3dip">
 
         <ImageView
-            android:id="@+id/list_image"
-            android:layout_width="55dip"
-            android:layout_height="55dip"
+            android:id="@+id/channel_logo"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
             android:src="@drawable/ic_launcher" />

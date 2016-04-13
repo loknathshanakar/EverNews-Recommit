@@ -9,7 +9,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -30,7 +29,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 public class YouView extends AppCompatActivity {
 
@@ -146,6 +144,7 @@ public class YouView extends AppCompatActivity {
         newsLink = intent.getStringExtra("NEWS_LINK")+"";
         newsTitle = intent.getStringExtra("NEWS_TITLE")+"";
         fullText = intent.getStringExtra("FULL_TEXT")+"";
+        fullText=fullText.replace("$$$$","\n\n");
         rssTitle = intent.getStringExtra("RSS_TITLE")+"";
         newsImage=intent.getStringExtra("NEWS_IMAGE")+"";
         newsSummary=intent.getStringExtra("SUMMARY")+"\nShared via #EVERNEWS";
