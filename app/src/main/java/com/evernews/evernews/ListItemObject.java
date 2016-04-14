@@ -42,4 +42,28 @@ public class ListItemObject {
         return categoryType;
     }
 
+
+    public void  setChannelLogo() {
+        this.channelLogo=channelLogo;
+    }
+
+    public void  setChannelTitle() {
+        this.channelTitle=channelTitle;
+    }
+
+    public void  setChannelMeta() {
+        this.channelMeta=channelMeta;
+    }
+
+    public void  setChannelRSSID() {
+        this.channelRSSID=channelRSSID;
+    }
+
+    public void  setChannelRSSURL() {
+        this.channelRSSURL=channelRSSURL;
+    }
+
+    public void  setCategoryType() {
+        this.categoryType=categoryType;
+    }
 }

@@ -140,9 +140,11 @@ public class ViewNews extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK) && caller.compareTo("SEARCH")==0) {
             finish();
+            return(true);
         }
         else if ((keyCode == KeyEvent.KEYCODE_BACK) && caller.compareTo("MAIN")==0) {
             finish();
+            return(true);
         }else {
             Intent i=new Intent(ViewNews.this,Main.class);
             startActivity(i);
@@ -517,9 +519,11 @@ public class ViewNews extends AppCompatActivity {
         if (id == android.R.id.home) {
             if (caller.compareTo("SEARCH")==0) {
                 finish();
+                return(true);
             }
             if (caller.compareTo("MAIN")==0) {
                 finish();
+                return(true);
             }
         }
 

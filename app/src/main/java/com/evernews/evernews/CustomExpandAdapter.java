@@ -17,11 +17,11 @@ import java.util.List;
 public class CustomExpandAdapter extends BaseExpandableListAdapter {
 
     private List<String> parentRecord;
-    private HashMap<String, List<ExpandListViewModel>> childRecord;
+    private HashMap<String, List<ListItemObject>> childRecord;
     private LayoutInflater inflater = null;
     private Activity mContext;
 
-    public CustomExpandAdapter(Activity context, List<String> parentList, HashMap<String, List<ExpandListViewModel>> childList) {
+    public CustomExpandAdapter(Activity context, List<String> parentList, HashMap<String, List<ListItemObject>> childList) {
         this.parentRecord = parentList;
         this.childRecord = childList;
         mContext = context;
@@ -29,7 +29,7 @@ public class CustomExpandAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public ExpandListViewModel getChild(int groupPosition, int childPosition) {
+    public ListItemObject getChild(int groupPosition, int childPosition) {
         return this.childRecord.get(getGroup(groupPosition)).get(childPosition);
     }
 
@@ -41,7 +41,7 @@ public class CustomExpandAdapter extends BaseExpandableListAdapter {
     @Override
     public View getChildView(int groupPosition, final int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
 
-        ExpandListViewModel childConfig = getChild(groupPosition, childPosition);
+        ListItemObject childConfig = getChild(groupPosition, childPosition);
 
         ViewHolder holder;
         try {
@@ -57,9 +57,9 @@ public class CustomExpandAdapter extends BaseExpandableListAdapter {
                 holder = (ViewHolder) convertView.getTag();
             }
 
-            holder.childTitle.setText(childConfig.getTitle());
-            holder.childDesc.setText(childConfig.getDesc());
-            Glide.with(mContext).load(childConfig.getIcon()).placeholder(R.drawable.ic_launcher).into(holder.channelLogo);
+            holder.childTitle.setText(childConfig.getChannelTitle());
+            holder.childDesc.setText(childConfig.getChannelMeta());
+            Glide.with(mContext).load(childConfig.getChannelLogo()).placeholder(R.drawable.ic_launcher).into(holder.channelLogo);
         } catch (Exception e) {
         }
         return convertView;

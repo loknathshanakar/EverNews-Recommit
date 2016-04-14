@@ -289,6 +289,7 @@ public class Settings extends AppCompatActivity {
                         iii.putExtra("CALLER", "SETTINGS");
                         finish();
                         startActivity(iii);
+                        return;
                     }
                     else {
                         Toast.makeText(context,"News channel list is loading please try again after some time",Toast.LENGTH_LONG).show();
@@ -614,6 +615,7 @@ public class Settings extends AppCompatActivity {
             Intent intent=new Intent(Settings.this,Main.class);
             //startActivity(intent);
             finish();
+            return(true);
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -629,6 +631,7 @@ public class Settings extends AppCompatActivity {
             Intent intent=new Intent(Settings.this,Main.class);
             //startActivity(intent);
             finish();
+            return(true);
         }
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {

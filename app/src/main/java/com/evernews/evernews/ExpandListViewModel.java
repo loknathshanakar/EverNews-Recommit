@@ -5,56 +5,107 @@ public class ExpandListViewModel {
     String desc;
     String icon;
 
-    /**
-     * @param title
-     * @param icon
-     */
-    public ExpandListViewModel(String title, String icon, String desc) {
+
+    private String channelLogo;
+    private String channelTitle;
+    private String channelMeta;
+    private String channelRSSID;
+    private String categoryType;
+    private String channelRSSURL;
+
+    public ExpandListViewModel(String channelLogo, String channelTitle, String channelMeta,String channelRSSID,String categoryType,String channelRSSURL) {
         super();
-        this.title = title;
-        this.icon = icon;
-        this.desc = desc;
+        this.channelLogo = channelLogo;
+        this.channelTitle = channelTitle;
+        this.channelMeta = channelMeta;
+        this.channelRSSID = channelRSSID;
+        this.categoryType = categoryType;
+        this.channelRSSURL = channelRSSURL;
     }
 
-    /**
-     * @return the title
-     */
-    public String getTitle() {
-        return title;
+
+    public String getChannelLogo() {
+        return channelLogo;
     }
 
-    /**
-     * @param title
-     *            the title to set
-     */
-    public void setTitle(String title) {
-        this.title = title;
+    public String getChannelTitle() {
+        return channelTitle;
     }
 
-    /**
-     * @return the icon
-     */
-    public String getIcon() {
-        return icon;
+    public String getChannelMeta() {
+        return channelMeta;
     }
 
-    /**
-     * @param icon
-     *            the icon to set
-     */
-    public void setIcon(String icon) {
-        this.icon = icon;
+    public String getChannelRSSID() {
+        return channelRSSID;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getChannelRSSURL() {
+        return channelRSSURL;
     }
 
-    /**
-     * @param title
-     *            the title to set
-     */
-    public void setDesc(String title) {
-        this.desc = desc;
+    public String getCategoryType() {
+        return categoryType;
     }
+
+
+
+    public void  setChannelLogo() {
+        this.channelLogo=channelLogo;
+    }
+
+    public void  setChannelTitle() {
+        this.channelTitle=channelTitle;
+    }
+
+    public void  setChannelMeta() {
+        this.channelMeta=channelMeta;
+    }
+
+    public void  setChannelRSSID() {
+        this.channelRSSID=channelRSSID;
+    }
+
+    public void  setChannelRSSURL() {
+        this.channelRSSURL=channelRSSURL;
+    }
+
+    public void  setCategoryType() {
+        this.categoryType=categoryType;
+    }
+//
+//    public String getTitle() {
+//        return title;
+//    }
+//
+//    public void setTitle(String title) {
+//        this.title = title;
+//    }
+//
+//    /**
+//     * @return the icon
+//     */
+//    public String getIcon() {
+//        return icon;
+//    }
+//
+//    /**
+//     * @param icon
+//     *            the icon to set
+//     */
+//    public void setIcon(String icon) {
+//        this.icon = icon;
+//    }
+//
+//    public String getDesc() {
+//        return desc;
+//    }
+//
+//    /**
+//     * @param title
+//     *            the title to set
+//     */
+//    public void setDesc(String title) {
+//        this.desc = desc;
+//    }
 }

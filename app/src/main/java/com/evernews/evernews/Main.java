@@ -87,6 +87,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
      */
     public static SectionsPagerAdapter mSectionsPagerAdapter;
     public static String catListArray[][]=new String[10000][8];
+    public static int catListArrayLength=0;
     public static boolean validCategory=false;
     public static boolean doThisflag=false;
     /**
@@ -127,7 +128,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     TabLayout tabLayout;
     LinearLayout tabStrip;
     View virtualView;
-    int mandetTab=10;
+    int mandetTab=-1;
 
 
     private Tracker mTracker;
@@ -632,6 +633,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                         switch (which) {
                                             case 0: {
                                                 new AsyncTask<Void, Integer, String>() {
+                                                    String RSSUID="";
                                                     String JsoupResopnse="";
                                                     int ExceptionCode = 0;       //sucess;
                                                     ProgressDialog progressdlg;
@@ -655,7 +657,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                     @Override
                                                     protected String doInBackground(Void... params) {
                                                         try {
-                                                            String RSSUID=Initilization.getAddOnListRSSID.get(x);
+                                                            RSSUID=Initilization.getAddOnListRSSID.get(x);
                                                             String RSSNAME=Initilization.addOnList.get(x);
                                                             publishProgress(1);
                                                             Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
@@ -683,15 +685,30 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                     protected void onPostExecute(String link) {
                                                         progressdlg.dismiss();
                                                         progress.setVisibility(View.GONE);
+                                                        int deleteNum=0;
+                                                        {
+                                                            String path = Initilization.DB_PATH + Initilization.DB_NAME;
+                                                            db = SQLiteDatabase.openDatabase(path, null, 0);
+                                                            deleteNum=db.delete(Initilization.TABLE_NAME,Initilization.RSSURLID + " = "+RSSUID,null);
+                                                            db.close();
+                                                        }
                                                         if(ExceptionCode==0) {
                                                             SharedPreferences.Editor editor = sharedpreferences.edit();
                                                             editor.putBoolean(Main.NEWCHANNELADDED, true);
-                                                            editor.commit();
-                                                            Snackbar snackbar = Snackbar.make(v, "News removed successfully...", Snackbar.LENGTH_LONG);
+                                                            editor.apply();
+                                                            {
+                                                                String path = Initilization.DB_PATH + Initilization.DB_NAME;
+                                                                db = SQLiteDatabase.openDatabase(path, null, 0);
+                                                                deleteNum=db.delete(Initilization.TABLE_NAME,Initilization.RSSURLID + " = "+RSSUID,null);
+                                                                db.close();
+                                                            }
+                                                            Snackbar snackbar = Snackbar.make(v, "News removed successfully...updates are being changed...("+deleteNum+" records were removed)", Snackbar.LENGTH_LONG);
                                                             progress.setVisibility(View.GONE);
                                                             snackbar.show();
 
-                                                            final ProgressDialog progressdlg = new ProgressDialog(context);
+                                                            new GetNewsTaskRestart().execute();
+
+                                                            /*final ProgressDialog progressdlg = new ProgressDialog(context);
                                                             progressdlg.setMessage("Updating Application");
                                                             progressdlg.setTitle("Updating contents,Please Wait...");
                                                             progressdlg.setCancelable(false);
@@ -704,14 +721,14 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                                 }
 
                                                                 public void onFinish() {
-                                                                    recreate();
+                                                                    new GetNewsTaskRestart().execute();
                                                                     progressdlg.dismiss();
                                                                 }
-                                                            }.start();
+                                                            }.start();*/
 
                                                         }
                                                         else{
-                                                            Snackbar snackbar = Snackbar.make(v, "Sorry news could not be removed...", Snackbar.LENGTH_LONG);
+                                                            Snackbar snackbar = Snackbar.make(v, "Sorry news could not be removed... (Error Code : "+RSSUID+" )("+deleteNum+" records were removed)", Snackbar.LENGTH_LONG);
                                                             snackbar.show();
                                                             progress.setVisibility(View.GONE);
                                                         }
@@ -942,6 +959,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         finish();
                         startActivity(i);
                         progressdlg.dismiss();
+                        return;
                     }
                 }.start();
                 //super.onPostExecute(aVoid);
@@ -1019,6 +1037,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         startActivity(i);
                         progressdlg.dismiss();
                         finish();
+                        return;
                     }
                 }.start();
                 //super.onPostExecute(aVoid);
@@ -1440,6 +1459,12 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
     public static void parseResultsList(String response)
     {
+        catListArrayLength=0;
+        for(int i=0;i<10000;i++){
+            for(int j=0;j<2;j++){
+                Main.catListArray[i][j]="NULL";
+            }
+        }
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
         try {
             for (int i = 0; i < 8; i++) {
@@ -1494,9 +1519,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 }
                 if (i == 7) {
                     int index = 0;
+                    catListArrayLength=0;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsType")) {
                         Main.catListArray[index][7] = e.text();
                         index++;
+                        catListArrayLength++;
                     }
                 }
             }

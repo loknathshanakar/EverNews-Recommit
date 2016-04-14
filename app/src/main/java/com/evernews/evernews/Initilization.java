@@ -43,7 +43,7 @@ public class Initilization extends AppCompatActivity {
     public static final int FullText = 13;
     public static final int NewsUrl = 14;
     //Database related stuff
-    public static final String TABLE_NAME = "FULLNEWS_REV1";
+    public static final String TABLE_NAME = "FULLNEWS_REV2";                //FULLNEWS (OLDNAME) 2)FULLNEWS_REV1
     public static final String CATEGORYID = "CategoryId";
     public static final String CATEGORYNAME = "Category";
     public static final String DISPLAYORDER = "DisplayOrder";
@@ -67,7 +67,7 @@ public class Initilization extends AppCompatActivity {
     public static long numRows=0;
     public static String SQL_CREATE_ENTRIES ="";
     public static String DB_PATH = "/data/data/com.evernews.evernews/databases/";
-    public static String DB_NAME = "FULLNEWS_REV1";
+    public static String DB_NAME = "";
     public static String androidId="";
     public static int timeout = 30000;
     public static String resultArray[][]=new String[10000][15];
@@ -85,9 +85,10 @@ public class Initilization extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initilization);
         getSupportActionBar().hide();
-        /*String path = DB_PATH + DB_NAME;
-        db = SQLiteDatabase.openDatabase(path, null, 0);
-        db.execSQL("DROP TABLE IF EXISTS FULLNEWS");*/
+        DB_NAME=TABLE_NAME;
+        String path = DB_PATH + DB_NAME;
+        this.deleteDatabase("FULLNEWS");
+        this.deleteDatabase("FULLNEWS_REV1");
         sharedpreferences = getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor=sharedpreferences.edit();
         if(sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==-1){
@@ -481,6 +482,7 @@ public class Initilization extends AppCompatActivity {
                 else
                     Toast.makeText(getApplicationContext(), "Unknown exception,program will now exit", Toast.LENGTH_SHORT).show();
                 finish();
+                return;
             }
             if ((content != null && goCode == 1) || (content != null && sharedpreferences.getBoolean(Main.NEWCHANNELADDED, false))) {
                 String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
@@ -493,11 +495,13 @@ public class Initilization extends AppCompatActivity {
                 Intent main = new Intent(Initilization.this, Main.class);
                 startActivity(main);
                 finish();
+                return;
             } else if (goCode == 2) {
                 offlineparseResults();
                 Intent main = new Intent(Initilization.this, Main.class);
                 startActivity(main);
                 finish();
+                return;
             } else {
                 Toast.makeText(getApplicationContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
                 finish();

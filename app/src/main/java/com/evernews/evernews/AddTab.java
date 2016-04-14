@@ -138,7 +138,10 @@ public class AddTab extends AppCompatActivity {
         mViewPager.setPageTransformer(true, new AccordionTransformer());
 
         context=this;
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setLogo(R.drawable.logo);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.go_backpng);
+        getSupportActionBar().setTitle("");
 
         sharedpreferences = getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
         if(sharedpreferences.getString(Main.APPLICATIONORIENTATION,"A").compareTo("L")==0){
@@ -216,14 +219,16 @@ public class AddTab extends AppCompatActivity {
         if (extras != null) {
             value = extras.getString("CALLER");
             if ((keyCode == KeyEvent.KEYCODE_BACK) && value.compareTo("MAIN") == 0) {
-                Intent intent = new Intent(AddTab.this, Main.class);
-                startActivity(intent);
+                //Intent intent = new Intent(AddTab.this, Main.class);
+                //startActivity(intent);
                 finish();
+                return (true);
             }
             else if ((keyCode == KeyEvent.KEYCODE_BACK) && value.compareTo("SETTINGS") == 0) {
                 Intent intent = new Intent(AddTab.this, Settings.class);
                 startActivity(intent);
                 finish();
+                return (true);
             }
         }
         return super.onKeyDown(keyCode, event);
@@ -240,6 +245,7 @@ public class AddTab extends AppCompatActivity {
             Intent intent=new Intent(AddTab.this,Main.class);
             startActivity(intent);
             finish();
+            return (true);
         }
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
@@ -394,6 +400,7 @@ public class AddTab extends AppCompatActivity {
 
     public void parseResultsList(String response)
     {
+
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
         try {
             for (int i = 0; i < 15; i++) {

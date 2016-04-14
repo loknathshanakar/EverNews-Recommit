@@ -59,6 +59,7 @@ public class ViewMessage extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
             finish();
+            return(true);
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -72,6 +73,7 @@ public class ViewMessage extends AppCompatActivity {
 
         if(id==android.R.id.home){
             finish();
+            return(true);
         }
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {

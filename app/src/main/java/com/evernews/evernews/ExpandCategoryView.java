@@ -12,7 +12,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -32,11 +34,13 @@ public class ExpandCategoryView extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private String predefCats[]={"Featured","Popular","Categories"};
     private static View rootView;
     // TODO: Rename and change types of parameters
     private int mParam1;
     private String mParam2;
-
+    private ArrayList <String> parentNames=new ArrayList<>();
+    private ArrayList <ListItemObject> childItems=new ArrayList<>();
     public ExpandCategoryView() {
         // Required empty public constructor
     }
@@ -75,27 +79,32 @@ public class ExpandCategoryView extends Fragment {
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_expand_category_view, container, false);/**Filling Drawer List View**/
         //navDrawerView = (LinearLayout) findViewById(R.id.navDrawerView);
-        ArrayList <ExpandListViewModel> mPlanetTitles=new ArrayList<>();
-        HashMap<String, List<ExpandListViewModel>> listDataChild=new HashMap<String, List<ExpandListViewModel>>();;
+        ArrayList <ListItemObject> mPlanetTitles=new ArrayList<>();
+        HashMap<String, List<ListItemObject>> listDataChild=new HashMap<String, List<ListItemObject>>();;
         ArrayList <String>listParent = new ArrayList<>();
         for(int i=0;i<10;i++){
-            mPlanetTitles.add(new ExpandListViewModel("Sub Product\t"+i,"URL"+i,"DESC"+i));
+            //mPlanetTitles.add(new ListItemObject("Sub Product\t"+i,"URL"+i,"DESC"+i));
         }
         // mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
         mDrawerList = (ExpandableListView) rootView.findViewById(R.id.category_exp_list);
 
-        listParent.add("Cat 1");
-        listParent.add("Cat 2");
+
+        parentNames=getParentNames();
+        listParent.addAll(parentNames);
+        /*listParent.add("Cat 2");
         listParent.add("Cat 3");
         listParent.add("Cat N");
-        listParent.add("Cat N2");
+        listParent.add("Cat N2");*/
 
-        listDataChild.put("Cat 1", mPlanetTitles);
+        for(int i=0;i<parentNames.size();i++){
+            listDataChild.put(parentNames.get(i),getChildNames(parentNames.get(i)));
+        }
+        /*listDataChild.put("Cat 1", mPlanetTitles);
         listDataChild.put("Cat 2", mPlanetTitles);
         listDataChild.put("Cat 3", mPlanetTitles);
         listDataChild.put("Cat N", mPlanetTitles);
-        listDataChild.put("Cat N2", mPlanetTitles);
+        listDataChild.put("Cat N2", mPlanetTitles);*/
 
         customAdapter = new CustomExpandAdapter(getActivity(), listParent, listDataChild);
         // setting list adapter
@@ -133,11 +142,59 @@ public class ExpandCategoryView extends Fragment {
                 parent.setItemChecked(index, true);
                 parent.setItemChecked(index, true);
                 String parentTitle = customAdapter.getGroup(groupPosition);
-                String childTitle= customAdapter.getChild(groupPosition,childPosition).getTitle();
-                Toast.makeText(getContext(),"Clicked at parent\t"+parentTitle+"\tChild at \t"+childTitle,Toast.LENGTH_LONG).show();
+                String childTitle= customAdapter.getChild(groupPosition,childPosition).getChannelTitle();
+                String imagUrl= customAdapter.getChild(groupPosition,childPosition).getChannelLogo();
+                String meta= customAdapter.getChild(groupPosition,childPosition).getChannelMeta();
+                String RSSUID=customAdapter.getChild(groupPosition,childPosition).getChannelRSSID();
+                //Toast.makeText(getContext(),"Clicked at parent\t"+parentTitle+"\tChild at \t"+childTitle,Toast.LENGTH_LONG).show();
+
+                //String RSSUID = allItems.get(position).getChannelRSSID();
+                new AddTabNewsPreview().setRSSUID(RSSUID).setChannelDetails(meta).setListener(new AddTabNewsPreview.AddListener() {
+                    @Override
+                    public void onAdd(AddTabNewsPreview dialog) {
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onRemove(AddTabNewsPreview dialog) {
+                        dialog.dismiss();
+                    }
+                }).show(getFragmentManager(), "#add");
                 return false;
             }
         });
         return rootView;
+    }
+
+    private ArrayList<String> getParentNames(){
+        ArrayList <String>names=new ArrayList<>();
+        for (int i = 0; i < Main.catListArrayLength; i++) {
+            if (Main.catListArray[i][7].compareToIgnoreCase("NULL") != 0 && Main.catListArray[i][7].compareToIgnoreCase(predefCats[0]) != 0 && Main.catListArray[i][7].compareToIgnoreCase(predefCats[1])!=0) {
+                names.add(Main.catListArray[i][7]);
+            }
+        }
+
+        Set<String> hs = new LinkedHashSet<>();
+        hs.addAll(names);
+        names.clear();
+        names.addAll(hs);
+        return(names);
+    }
+
+    private ArrayList<ListItemObject> getChildNames(String assertAgainst){
+        ArrayList <ListItemObject>names=new ArrayList<>();
+
+        for(int i=0;i<Main.catListArrayLength;i++){
+            if(Main.catListArray[i][7].compareToIgnoreCase(assertAgainst) == 0) {
+                String channelLogo = Main.catListArray[i][3];
+                String channelTitle = Main.catListArray[i][6];
+                String channelMeta = Main.catListArray[i][4];
+                String channelRSSID = Main.catListArray[i][0];
+                String categoryType = Main.catListArray[i][7];
+                String channelRSSURL = Main.catListArray[i][2];
+                names.add(new ListItemObject(channelLogo, channelTitle, channelMeta, channelRSSID, categoryType,channelRSSURL));
+            }
+        }
+        return names;
     }
 }
