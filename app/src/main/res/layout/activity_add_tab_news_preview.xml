@@ -30,8 +30,9 @@
 
             <ImageView
                 android:layout_width="@dimen/sixty_eight"
-                android:layout_height="match_parent"
-                android:src="@drawable/recode" />
+                android:layout_height="@dimen/sixty_eight"
+                android:id="@+id/logo_View"
+                android:src="@drawable/ic_launcher" />
 
             <LinearLayout
                 android:layout_width="match_parent"

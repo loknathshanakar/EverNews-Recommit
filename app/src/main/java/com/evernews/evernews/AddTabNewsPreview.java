@@ -15,9 +15,12 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
 
 import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
@@ -34,6 +37,7 @@ import java.util.List;
 public class AddTabNewsPreview extends DialogFragment {
     SwipeRefreshLayout refresh;
     private static String RSSUID="";
+    private static String imageURl="";
     private Context context;
     private static String channelDetails="";
     public interface AddListener {
@@ -59,6 +63,9 @@ public class AddTabNewsPreview extends DialogFragment {
         final Button addBtn=(Button)add.findViewById(R.id.add_add);
         final TextView channelName=(TextView) add.findViewById(R.id.channel_name_add);
         final TextView channelMeta=(TextView) add.findViewById(R.id.channelMeta_add);
+        final ImageView channelLogo=(ImageView)add.findViewById(R.id.logo_View);
+        context=getContext();
+        Glide.with(context).load(imageURl).fitCenter().placeholder(R.drawable.ic_launcher).into(channelLogo);
         prog.setVisibility(View.VISIBLE);
         GridView gridView = (GridView)add.findViewById(R.id.gridview_add);
         List <ItemObject> tempItems = parseResultsEmpty();
@@ -235,4 +242,9 @@ public class AddTabNewsPreview extends DialogFragment {
         AddTabNewsPreview.channelDetails = channelDetails;
         return this;
     }
+    public AddTabNewsPreview setImageURL(String imageURl) {
+        AddTabNewsPreview.imageURl = imageURl;
+        return this;
+    }
+
 }

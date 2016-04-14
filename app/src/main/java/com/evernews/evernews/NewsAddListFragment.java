@@ -88,7 +88,7 @@ public class NewsAddListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 String RSSUID = allItems.get(position).getChannelRSSID();
-                new AddTabNewsPreview().setRSSUID(RSSUID).setChannelDetails(allItems.get(position).getChannelMeta()).setListener(new AddTabNewsPreview.AddListener() {
+                new AddTabNewsPreview().setRSSUID(RSSUID).setChannelDetails(allItems.get(position).getChannelMeta()).setImageURL(allItems.get(position).getChannelLogo()).setListener(new AddTabNewsPreview.AddListener() {
                     @Override
                     public void onAdd(AddTabNewsPreview dialog) {
                         dialog.dismiss();

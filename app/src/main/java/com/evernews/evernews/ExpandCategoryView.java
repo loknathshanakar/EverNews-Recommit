@@ -149,7 +149,7 @@ public class ExpandCategoryView extends Fragment {
                 //Toast.makeText(getContext(),"Clicked at parent\t"+parentTitle+"\tChild at \t"+childTitle,Toast.LENGTH_LONG).show();
 
                 //String RSSUID = allItems.get(position).getChannelRSSID();
-                new AddTabNewsPreview().setRSSUID(RSSUID).setChannelDetails(meta).setListener(new AddTabNewsPreview.AddListener() {
+                new AddTabNewsPreview().setRSSUID(RSSUID).setChannelDetails(meta).setImageURL(imagUrl).setListener(new AddTabNewsPreview.AddListener() {
                     @Override
                     public void onAdd(AddTabNewsPreview dialog) {
                         dialog.dismiss();
