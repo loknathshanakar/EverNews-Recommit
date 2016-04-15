@@ -26,7 +26,6 @@
         android:layout_centerHorizontal="true" />
 
     <TextView
-        android:layout_marginBottom="25dp"
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
         android:layout_marginRight="10dp"
@@ -41,6 +40,22 @@
         android:id="@+id/title"
         android:layout_below="@+id/source"
         android:layout_centerHorizontal="true" />
+    <TextView
+        android:layout_marginBottom="25dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text=""
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="#000000"
+        android:id="@+id/date"
+        android:layout_below="@+id/title"
+        android:layout_centerHorizontal="true" />
 
     <ImageView
         android:layout_marginBottom="25dp"
@@ -54,7 +69,7 @@
         android:src="@drawable/news"
         android:scaleType="fitXY"
         android:adjustViewBounds="true"
-        android:layout_below="@+id/title"
+        android:layout_below="@+id/date"
         android:layout_centerHorizontal="true" />
 
     <TextView

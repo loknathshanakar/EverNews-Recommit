@@ -888,7 +888,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             try
             {
                 Initilization.androidId = android.provider.Settings.Secure.getString(getApplicationContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
+                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadALLDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
                 content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
                 content=content.replace("\n","$$$$");
             }
@@ -969,7 +969,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             try
             {
                 Initilization.androidId = android.provider.Settings.Secure.getString(getApplicationContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
+                String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadALLDefaultNews?AndroidId="+Initilization.androidId;//Over ride but should be Main.androidId
                 content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
                 content=content.replace("\n","$$$$");
             }

@@ -39,10 +39,11 @@ public class YouView extends AppCompatActivity {
     static String rssTitle="";
     static String newsSummary="";
     static String caller="";
+    static String newsDate="";
     static String newsImage="";
     static String UUIDD="";
     Context context;
-    TextView title1,title2,content;
+    TextView title1,title2,content,date;
     ImageView imageView;
     CallbackManager callbackManager;
     ShareDialog shareDialog;
@@ -136,6 +137,7 @@ public class YouView extends AppCompatActivity {
 
         title1=(TextView)findViewById(R.id.source);
         title2=(TextView)findViewById(R.id.title);
+        date=(TextView)findViewById(R.id.date);
         content=(TextView)findViewById(R.id.content);
         imageView=(ImageView)findViewById(R.id.imageView2);
 
@@ -145,6 +147,7 @@ public class YouView extends AppCompatActivity {
         newsTitle = intent.getStringExtra("NEWS_TITLE")+"";
         fullText = intent.getStringExtra("FULL_TEXT")+"";
         fullText=fullText.replace("$$$$","\n\n");
+        newsDate=intent.getStringExtra("NEWS_DATE")+"";
         rssTitle = intent.getStringExtra("RSS_TITLE")+"";
         newsImage=intent.getStringExtra("NEWS_IMAGE")+"";
         newsSummary=intent.getStringExtra("SUMMARY")+"\nShared via #EVERNEWS";
@@ -163,7 +166,9 @@ public class YouView extends AppCompatActivity {
                     UUID.fromString(UUIDD);
                     title1.setText(rssTitle);
                     title2.setText(newsTitle);
+                    date.setText(newsDate);
                     content.setText(fullText);
+
                     Glide.with(this).load(newsImage).into(imageView);
                     fab_new.setVisibility(View.VISIBLE);
                 }
@@ -173,6 +178,7 @@ public class YouView extends AppCompatActivity {
                     title1.setText(rssTitle);
                     title2.setText(newsTitle);
                     content.setText(fullText);
+                    date.setText(newsDate);
                     imageView.setVisibility(View.GONE);
                 }
             }
