@@ -75,9 +75,11 @@ public class ViewNews extends AppCompatActivity {
     static String newsLink="";
     static String newsTitle="";
     static String fullText="";
+    static String newsDate="";
     static String rssTitle="";
     static String caller="";
     static String newsImage="";
+    static String HTMLDesc="";
     static String UUIDD="";
     static String finalHtml2 = "";
     public static FloatingActionButton fab_new;
@@ -171,7 +173,7 @@ public class ViewNews extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_news2);
+        setContentView(R.layout.activity_view_news);
         context=this;
 
         sharedpreferences = getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
@@ -246,8 +248,11 @@ public class ViewNews extends AppCompatActivity {
         newsLink = intent.getStringExtra("NEWS_LINK")+"";
         newsTitle = intent.getStringExtra("NEWS_TITLE")+"";
         fullText = intent.getStringExtra("FULL_TEXT")+"";
+        newsDate=intent.getStringExtra("NEWS_DATE")+"";
         rssTitle = intent.getStringExtra("RSS_TITLE")+"";
         newsImage=intent.getStringExtra("NEWS_IMAGE")+"";
+        HTMLDesc=intent.getStringExtra("HTML_DESC")+"";
+
         fullText=fullText.replace("$$$$","<br>");
         boolean cleanUUID=true;
         {
@@ -272,8 +277,8 @@ public class ViewNews extends AppCompatActivity {
         if(newsLink.compareTo("NULL_WITH_IMAGE")==0)
             mViewPager.setCurrentItem(1);
         if(newsLink.length()>=0 && newsTitle.length()>=0 && fullText.length()>=0 && rssTitle.length()>=0){
-            String title = "<h1><center>" + newsTitle + "</center></h1><br>";
-            String source = "<h2><center>" + rssTitle + "</center></h2>";
+            String title = "<h1><center>" + newsTitle + "</center></h1>"+"<h2><center>"+ newsDate + "</center></h2>";
+            String source = "<h2><center>" + rssTitle + "</center></h2><br>";
             if(newsLink.compareTo("NULL_WITH_IMAGE")==0 && cleanUUID)
                  newsImage ="<br><br><center><img src=\""+newsImage+""+"\" alt=\"No Image\" style=\"max-width:400px;max-height:400px;\"></center><br><br>";
             else
@@ -353,8 +358,8 @@ public class ViewNews extends AppCompatActivity {
             }
         });
 
-
-        if (newsLink==null || newsLink.length()<2) {
+        boolean execute=false;
+        if (newsLink==null || newsLink.length()<2 && execute) {
             new AsyncTask<Void, Void, String>() {
                 boolean noException=true;
                 @Override
@@ -559,7 +564,7 @@ public class ViewNews extends AppCompatActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            final View rootView = inflater.inflate(R.layout.fragment_view_news2, container, false);
+            final View rootView = inflater.inflate(R.layout.fragment_view_news, container, false);
             final WebView mWebView = (WebView) rootView.findViewById(R.id.webView_news);
             new AsyncTask<Void, Void, String>() {
                 @Override
@@ -570,7 +575,11 @@ public class ViewNews extends AppCompatActivity {
                 protected void onPostExecute(String link) {
                     if(getArguments().getInt(ARG_SECTION_NUMBER)==1 && !newsLink.isEmpty()) {
                         mWebView.setWebViewClient(new WebViewClient());
-                        mWebView.loadUrl(newsLink);
+                        if(HTMLDesc.length()>10){
+                            mWebView.loadData(HTMLDesc, "text/html", null);
+                        }else {
+                            mWebView.loadUrl(newsLink);
+                        }
                         mWebView.setOnTouchListener(new View.OnTouchListener() {
 
                             public boolean onTouch(View v, MotionEvent ev) {

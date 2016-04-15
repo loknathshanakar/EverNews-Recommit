@@ -9,18 +9,19 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 4
-        versionName "0.0331"
+        versionName "0.0332"
     }
     buildTypes {
         release {
-            minifyEnabled false
+            shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile files('libs/simpleftp.jar')
     compile 'com.google.android.gms:play-services-analytics:8.4.0'
@@ -31,4 +32,5 @@ dependencies {
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.facebook.android:facebook-android-sdk:4.10.0'
     compile 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:1.2.32'
+    compile 'ch.acra:acra:4.8.5'
 }

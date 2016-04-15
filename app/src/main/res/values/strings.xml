@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">EverNews</string>
-    <string name="app_with_version">EverNews v0.0331</string>
+    <string name="app_with_version">EverNews v0.0332</string>
     <string name="title_activity_view_news">ViewNews</string>
     <string name="share_using">Share Using</string>
     <!-- TODO: Remove or change this placeholder text -->
@@ -11,4 +11,6 @@
     <string name="title_activity_add_tab_news_preview">AddTabNewsPreview</string>
     <string name="title_activity_search">Search</string>
     <string name="title_activity_you_view">YouView</string>
+    <string name="crash_toast_text">Oops something went wrong..Mailing the issue to developer</string>
+
 </resources>

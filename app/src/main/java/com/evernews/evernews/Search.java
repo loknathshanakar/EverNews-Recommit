@@ -134,12 +134,20 @@ public class Search extends AppCompatActivity {
                     i.putExtra("NEWS_ID", newsID);
                 else
                     i.putExtra("NEWS_ID", newsID);
-                i.putExtra("NEWS_LINK", "EMPTY");
-                i.putExtra("NEWS_TITLE", "EMPTY");
+                i.putExtra("SUMMARY",itemCollection.get(position).getnewsSummary());
+                i.putExtra("NEWS_TITLE", itemCollection.get(position).getnewsTitle());
+                i.putExtra("RSS_TITLE", itemCollection.get(position).getnewsName());
+                i.putExtra("FULL_TEXT", itemCollection.get(position).getFullText());
+                i.putExtra("NEWS_IMAGE", itemCollection.get(position).getNewsImage());
+                i.putExtra("NEWS_DATE", itemCollection.get(position).getnewsDate());
+                if (itemCollection.get(position).getCategoryID().compareTo("-1") == 0)
+                    i.putExtra("NEWS_LINK", "NULL_WITH_IMAGE");
+                else
+                    i.putExtra("NEWS_LINK", itemCollection.get(position).getNewsURL());
                 i.putExtra("CALLER","SEARCH");
-                new AsyncTask<Void, Void, String>() {
+                /*new AsyncTask<Void, Void, String>() {
                     String newsLink = "";
-                    String source = "", title = "", news = "";
+                    String source = "", title = "", news = "",newsDate="";
 
                     @Override
                     protected String doInBackground(Void... params) {
@@ -166,7 +174,7 @@ public class Search extends AppCompatActivity {
                                     i.putExtra("NEWS_TITLE", "NULL");
                                 else
                                     i.putExtra("NEWS_TITLE", title);
-                                title = "<h1><center>" + title + "</center></h1><br>";
+                                title = "<h1><center>" + title + "</center></h1><br>"+"<h2><center>"+ newsDate + "</center></h2><br>";
                             }
                             iIndex = Xml.indexOf("<RSSTitle>") + 10;
                             eIndex = Xml.indexOf("</RSSTitle>");
@@ -198,7 +206,7 @@ public class Search extends AppCompatActivity {
                     protected void onPostExecute(String link) {
                         ViewNews.finalHtml = "<!DOCTYPE html> <html> <body>" + ViewNews.finalHtml + "</p> </body> </html>";
                     }
-                }.execute();
+                }.execute();*/
                 startActivity(i);
             }
         });
@@ -247,11 +255,11 @@ public class Search extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             if(JsoupResopnse.length()>50 && ExceptionCode==0){
-                List<ItemObject> items= decodeResults(JsoupResopnse);
-                if(items.size()>0) {
-                    CustomAdapter customAdapter = new CustomAdapter(context, items);
+                 itemCollection = decodeResults(JsoupResopnse);
+                if(itemCollection.size()>0) {
+                    CustomAdapter customAdapter = new CustomAdapter(context, itemCollection);
                     gridView.setAdapter(customAdapter);
-                    itemCollection.addAll(items);
+                    itemCollection.addAll(itemCollection);
                     query.setText("");
                     query.setHint("Search Results for "+queryString);
                 }
@@ -267,6 +275,7 @@ public class Search extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             progressDlg = ProgressDialog.show(context, "Connecting", "Please wait while we connect to our servers", true);
+            progressDlg.setCancelable(true);
             itemCollection.clear();
         }
 
@@ -300,7 +309,9 @@ public class Search extends AppCompatActivity {
             String FullText = (parser.getValue(e, "FullText"));
             String NewsURL = (parser.getValue(e, "NewsURL"));
             String Summary = (parser.getValue(e, "Summary"));
-            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId,CATID,FullText,NewsURL,Summary));
+            String NewsDate = (parser.getValue(e, "NewsDate"));
+            String HTMLDesc = (parser.getValue(e, "HtmlDescription"));
+            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId,CATID,FullText,NewsURL,Summary,NewsDate,HTMLDesc));
         }
         return (items);
     }

@@ -11,8 +11,10 @@ public class ItemObject {
     private String fullText;
     private String newsURL;
     private String newsSummary;
+    private String newsDate;
+    private String HTMLDesc;
 
-    public ItemObject(String newsImage, String newsTitle, String newsName,String newsID,String categoryID,String fullText,String newsURL ,String newsSummary) {
+    public ItemObject(String newsImage, String newsTitle, String newsName,String newsID,String categoryID,String fullText,String newsURL ,String newsSummary,String newsDate,String HTMLDesc) {
         this.newsImage = newsImage;
         this.newsTitle = newsTitle;
         this.newsName = newsName;
@@ -21,6 +23,8 @@ public class ItemObject {
         this.fullText = fullText;
         this.newsURL = newsURL;
         this.newsSummary=newsSummary;
+        this.newsDate=newsDate;
+        this.HTMLDesc=HTMLDesc;
     }
 
     public String getNewsImage() {
@@ -52,4 +56,8 @@ public class ItemObject {
     }
 
     public String getnewsSummary(){return newsSummary;}
+
+    public String getnewsDate(){return newsDate;}
+
+    public String getHTMLDesc(){return HTMLDesc;}
 }

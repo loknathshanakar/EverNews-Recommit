@@ -126,7 +126,6 @@ public class Settings extends AppCompatActivity {
         {
             float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,250);
             float BackLightValue = (float)arg1/100;
-            int curBrightnessValue=0;
             WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
             layoutParams.screenBrightness = BackLightValue; // Set Value
             getWindow().setAttributes(layoutParams); // Set params
@@ -284,7 +283,7 @@ public class Settings extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     boolean override=true;
-                    if(Main.validCategory ||override) {
+                    if(Main.validCategory) {
                         Intent iii = new Intent(Settings.this, AddTab.class);
                         iii.putExtra("CALLER", "SETTINGS");
                         finish();
@@ -380,29 +379,29 @@ public class Settings extends AppCompatActivity {
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
                 builderSingle.setTitle("Page change animation");
 
-                arrayAdapter.add("CubeOut Transformer");
+                //arrayAdapter.add("CubeOut Transformer");
 
                 arrayAdapter.add("Accordion Transformer");
 
-                arrayAdapter.add("BackgroundToForeground Transformer");
+                //arrayAdapter.add("BackgroundToForeground Transformer");
 
-                arrayAdapter.add("DepthPage Transformer");
+                //arrayAdapter.add("DepthPage Transformer");
 
-                arrayAdapter.add("ForegroundToBackground Transformer");
+                //arrayAdapter.add("ForegroundToBackground Transformer");
 
                 arrayAdapter.add("RotateDown Transformer");
 
-                arrayAdapter.add("RotateUp Transformer");
+                //arrayAdapter.add("RotateUp Transformer");
 
-                arrayAdapter.add("ScaleInOut Transformer");
+                //arrayAdapter.add("ScaleInOut Transformer");
 
-                arrayAdapter.add("Stack Transformer");
+                //arrayAdapter.add("Stack Transformer");
 
                 arrayAdapter.add("Tablet Transformer");
 
-                arrayAdapter.add("ZoomIn Transformer");
+                //arrayAdapter.add("ZoomIn Transformer");
 
-                arrayAdapter.add("ZoomOutSlide Transformer");
+                //arrayAdapter.add("ZoomOutSlide Transformer");
 
                 arrayAdapter.add("ZoomOut Transformer");
 
@@ -419,75 +418,75 @@ public class Settings extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
-                                    case 0:
+                                    case 50:
                                         editor.putString(Main.ANIMATIONTYPE, "CubeOut");
                                         animationType.setText("Page change type : CubeOut Transformer");
                                         editor.apply();
                                         break;
-                                    case 1:
+                                    case 0:
                                         editor.putString(Main.ANIMATIONTYPE, "Accordion");
                                         animationType.setText("Page change type : Accordion Transformer");
                                         editor.apply();
                                         break;
-                                    case 2:
+                                    case 21:
                                         editor.putString(Main.ANIMATIONTYPE, "BackgroundToForeground");
                                         animationType.setText("Page change type : BackgroundToForeground Transformer");
                                         editor.apply();
                                         break;
-                                    case 3:
+                                    case 31:
                                         editor.putString(Main.ANIMATIONTYPE, "DepthPage");
                                         animationType.setText("Page change type : DepthPage Transformer");
                                         editor.apply();
                                         break;
-                                    case 4:
+                                    case 41:
                                         editor.putString(Main.ANIMATIONTYPE, "ForegroundToBackground");
                                         animationType.setText("Page change type : ForegroundToBackground Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 5:
+                                    case 1:
                                         editor.putString(Main.ANIMATIONTYPE, "RotateDown");
                                         animationType.setText("Page change type : RotateDown Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 6:
+                                    case 61:
                                         editor.putString(Main.ANIMATIONTYPE, "RotateUp");
                                         animationType.setText("Page change type : RotateUp Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 7:
+                                    case 71:
                                         editor.putString(Main.ANIMATIONTYPE, "ScaleInOut");
                                         animationType.setText("Page change type : ScaleInOut Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 8:
+                                    case 18:
                                         editor.putString(Main.ANIMATIONTYPE, "Stack");
                                         animationType.setText("Page change type : Stack Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 9:
+                                    case 2:
                                         editor.putString(Main.ANIMATIONTYPE, "Tablet");
                                         animationType.setText("Page change type : Tablet Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 10:
+                                    case 101:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomIn");
                                         animationType.setText("Page change type : ZoomIn Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 11:
+                                    case 111:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomOutSlide");
                                         animationType.setText("Page change type : ZoomOutSlide Transformer");
                                         editor.apply();
                                         break;
 
-                                    case 12:
+                                    case 3:
                                         editor.putString(Main.ANIMATIONTYPE, "ZoomOut");
                                         animationType.setText("Page change type : ZoomOut Transformer");
                                         editor.apply();

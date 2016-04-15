@@ -152,8 +152,10 @@ public class ReusableFragment extends Fragment {
                 i.putExtra("SUMMARY",itemCollection.get(position).getnewsSummary());
                 i.putExtra("NEWS_TITLE", itemCollection.get(position).getnewsTitle());
                 i.putExtra("RSS_TITLE", itemCollection.get(position).getnewsName());
+                i.putExtra("HTML_DESC", itemCollection.get(position).getHTMLDesc());
                 i.putExtra("FULL_TEXT", itemCollection.get(position).getFullText());
                 i.putExtra("NEWS_IMAGE", itemCollection.get(position).getNewsImage());
+                i.putExtra("NEWS_DATE", itemCollection.get(position).getnewsDate());
                 if (itemCollection.get(position).getCategoryID().compareTo("-1") == 0)
                     i.putExtra("NEWS_LINK", "NULL_WITH_IMAGE");
                 else
@@ -340,8 +342,8 @@ public class ReusableFragment extends Fragment {
 
     private List<ItemObject> getDefaultNews(int ii){
         List<ItemObject> items = new ArrayList<>();
-        items.add(new ItemObject("", "", "", "", "","","",""));
-        ItemObject prevObj=new ItemObject("", "", "", "", "","","","");
+        items.add(new ItemObject("", "", "", "", "","","","","",""));
+        ItemObject prevObj=new ItemObject("", "", "", "", "","","","","","");
         int i= getArguments().getInt(TYPE_KEY);
         String tabName=getArguments().getString(TAB_NAME);
         if(i==1)
@@ -363,7 +365,9 @@ public class ReusableFragment extends Fragment {
                         String FullText = Initilization.resultArray[j][Initilization.FullText];
                         String NewsUrl = Initilization.resultArray[j][Initilization.NewsUrl];
                         String Summary = Initilization.resultArray[j][Initilization.Summary];
-                        items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,Summary));
+                        String newsDate = Initilization.resultArray[j][Initilization.NewsDate];
+                        String HTMLDesc = Initilization.resultArray[j][Initilization.HTMLDesc];
+                        items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,Summary,newsDate,HTMLDesc));
                         /*if(!items.contains(prevObj)){
                             items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
                         }*/
@@ -424,7 +428,7 @@ public class ReusableFragment extends Fragment {
             String currentNewsCategory = "";
             /**END**/
             org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
-            for (int i = 0; i < 15; i++) {
+            for (int i = 0; i < 16; i++) {
                 if (i == Initilization.CategoryId) {
                     int index = 0;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryId")) {
@@ -530,6 +534,13 @@ public class ReusableFragment extends Fragment {
                         index++;
                     }
                 }
+                if (i == Initilization.HTMLDesc) {
+                    int index = 0;
+                    for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
+                        Initilization.resultArray[index][Initilization.HTMLDesc] = e.text();
+                        index++;
+                    }
+                }
             }
 
             for (int i = 0; i < 10000; i++) {
@@ -551,7 +562,7 @@ public class ReusableFragment extends Fragment {
                 values.put(Initilization.CATEGORYORNEWS, Initilization.resultArray[i][Initilization.CategoryorNews]);
                 values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
                 values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
-
+                values.put(Initilization.RESERVED_4, Initilization.resultArray[i][Initilization.HTMLDesc]);
                 if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                     values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
                 else
@@ -605,20 +616,20 @@ public class ReusableFragment extends Fragment {
     public void parseResults(String response)
     {
         int tabName=getArguments().getInt(TYPE_KEY);
-        String NewsImage="",NewsTitle="",RSSTitle="",NewsId="",CategoryId="",FullText="",NewsUrl="",NewsSummary="";
+        String NewsImage="",NewsTitle="",RSSTitle="",NewsId="",CategoryId="",FullText="",NewsUrl="",NewsSummary="",NewsDate="",HTMLDesc="";
         ContentValues values = new ContentValues();
         String path=Initilization.DB_PATH+Initilization.DB_NAME;
         SQLiteDatabase db= SQLiteDatabase.openDatabase(path, null, 0);
-        String tempResults[][]=new String[1000][15];
+        String tempResults[][]=new String[1000][16];
         for(int i=0;i<1000;i++){
             for(int j=0;j<15;j++){
              tempResults[i][j]="NULL";
             }
         }
         asyncitems.clear();
-        asyncitems.add(new ItemObject(tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"",tabName+""));
+        asyncitems.add(new ItemObject(tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"", tabName+"",tabName+"",tabName+"",tabName+""));
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
-        for(int i=0;i<15;i++)
+        for(int i=0;i<16;i++)
         {
             if(i==Initilization.CategoryId) {
                 int index=0;
@@ -725,6 +736,13 @@ public class ReusableFragment extends Fragment {
                     index++;
                 }
             }
+            if (i == Initilization.HTMLDesc) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
+                    Initilization.resultArray[index][Initilization.HTMLDesc] = e.text();
+                    index++;
+                }
+            }
         }
         for(int i=0;i<1000;i++){
             if(tempResults[i][Initilization.CategoryId].contains("NULL")||tempResults[i][Initilization.NewsId].contains("NULL")){
@@ -745,7 +763,7 @@ public class ReusableFragment extends Fragment {
             values.put(Initilization.CATEGORYORNEWS,tempResults[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT,tempResults[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, tempResults[i][Initilization.NewsUrl]);
-
+            values.put(Initilization.RESERVED_4, Initilization.resultArray[i][Initilization.HTMLDesc]);
 
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, tempResults[i][Initilization.NewsId]);
@@ -772,7 +790,9 @@ public class ReusableFragment extends Fragment {
             FullText=tempResults[i][Initilization.FullText];
             NewsUrl=tempResults[i][Initilization.NewsUrl];
             NewsSummary=tempResults[i][Initilization.Summary];
-            asyncitems.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,NewsSummary));
+            NewsDate=tempResults[i][Initilization.NewsDate];
+            HTMLDesc=tempResults[i][Initilization.HTMLDesc];
+            asyncitems.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,NewsSummary,NewsDate,HTMLDesc));
             for(int k=0;k<itemCollection.size();k++){
                 if((itemCollection.get(k).getNewsID().contains(NewsId) && asyncitems.size()-1>=0 )|| (itemCollection.get(k).getnewsTitle().compareTo(NewsTitle)==0&&asyncitems.size()-1>=0)){
                     asyncitems.remove(asyncitems.size()-1);

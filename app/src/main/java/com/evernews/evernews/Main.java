@@ -45,20 +45,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ToxicBakery.viewpager.transforms.AccordionTransformer;
-import com.ToxicBakery.viewpager.transforms.BackgroundToForegroundTransformer;
-import com.ToxicBakery.viewpager.transforms.CubeInTransformer;
 import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
-import com.ToxicBakery.viewpager.transforms.DepthPageTransformer;
-import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
-import com.ToxicBakery.viewpager.transforms.FlipVerticalTransformer;
-import com.ToxicBakery.viewpager.transforms.ForegroundToBackgroundTransformer;
 import com.ToxicBakery.viewpager.transforms.RotateDownTransformer;
-import com.ToxicBakery.viewpager.transforms.RotateUpTransformer;
-import com.ToxicBakery.viewpager.transforms.ScaleInOutTransformer;
-import com.ToxicBakery.viewpager.transforms.StackTransformer;
 import com.ToxicBakery.viewpager.transforms.TabletTransformer;
-import com.ToxicBakery.viewpager.transforms.ZoomInTransformer;
-import com.ToxicBakery.viewpager.transforms.ZoomOutSlideTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutTranformer;
 import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.analytics.GoogleAnalytics;
@@ -246,33 +235,33 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             mViewPager.setPageTransformer(true, new CubeOutTransformer());
         if(animationCode.compareTo("Accordion")==0)
             mViewPager.setPageTransformer(true, new AccordionTransformer());
-        if(animationCode.compareTo("BackgroundToForeground")==0)
-            mViewPager.setPageTransformer(true, new BackgroundToForegroundTransformer());
-        if(animationCode.compareTo("CubeIn")==0)
-            mViewPager.setPageTransformer(true, new CubeInTransformer());
-        if(animationCode.compareTo("DepthPage")==0)
-            mViewPager.setPageTransformer(true, new DepthPageTransformer());
-        if(animationCode.compareTo("FlipHorizontal")==0)
-            mViewPager.setPageTransformer(true, new FlipHorizontalTransformer());
-        if(animationCode.compareTo("FlipVertical")==0)
-            mViewPager.setPageTransformer(true, new FlipVerticalTransformer());
-        if(animationCode.compareTo("ForegroundToBackground")==0)
-            mViewPager.setPageTransformer(true, new ForegroundToBackgroundTransformer());
+        //if(animationCode.compareTo("BackgroundToForeground")==0)
+            //mViewPager.setPageTransformer(true, new BackgroundToForegroundTransformer());
+        //if(animationCode.compareTo("CubeIn")==0)
+            //mViewPager.setPageTransformer(true, new CubeInTransformer());
+        //if(animationCode.compareTo("DepthPage")==0)
+            //mViewPager.setPageTransformer(true, new DepthPageTransformer());
+        //if(animationCode.compareTo("FlipHorizontal")==0)
+            //mViewPager.setPageTransformer(true, new FlipHorizontalTransformer());
+        //if(animationCode.compareTo("FlipVertical")==0)
+           // mViewPager.setPageTransformer(true, new FlipVerticalTransformer());
+        ////if(animationCode.compareTo("ForegroundToBackground")==0)
+            //mViewPager.setPageTransformer(true, new ForegroundToBackgroundTransformer());
         if(animationCode.compareTo("RotateDown")==0)
             mViewPager.setPageTransformer(true, new RotateDownTransformer());
-        if(animationCode.compareTo("RotateUp")==0)
-            mViewPager.setPageTransformer(true, new RotateUpTransformer());
-        if(animationCode.compareTo("ScaleInOut")==0)
-            mViewPager.setPageTransformer(true, new ScaleInOutTransformer());
-        if(animationCode.compareTo("Stack")==0)
-            mViewPager.setPageTransformer(true, new StackTransformer());
+        //if(animationCode.compareTo("RotateUp")==0)
+            //mViewPager.setPageTransformer(true, new RotateUpTransformer());
+        //if(animationCode.compareTo("ScaleInOut")==0)
+            //mViewPager.setPageTransformer(true, new ScaleInOutTransformer());
+        //if(animationCode.compareTo("Stack")==0)
+            //mViewPager.setPageTransformer(true, new StackTransformer());
         if(animationCode.compareTo("Tablet")==0)
             if(animationCode.compareTo("Tablet")==0)
                 mViewPager.setPageTransformer(true, new TabletTransformer());
-        if(animationCode.compareTo("ZoomIn")==0)
-            mViewPager.setPageTransformer(true, new ZoomInTransformer());
-        if(animationCode.compareTo("ZoomOutSlide")==0)
-            mViewPager.setPageTransformer(true, new ZoomOutSlideTransformer());
+        //if(animationCode.compareTo("ZoomIn")==0)
+            //mViewPager.setPageTransformer(true, new ZoomInTransformer());
+        //if(animationCode.compareTo("ZoomOutSlide")==0)
+           // mViewPager.setPageTransformer(true, new ZoomOutSlideTransformer());
         if(animationCode.compareTo("ZoomOut")==0)
             mViewPager.setPageTransformer(true, new ZoomOutTranformer());
         /**END**/
@@ -686,12 +675,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                         progressdlg.dismiss();
                                                         progress.setVisibility(View.GONE);
                                                         int deleteNum=0;
-                                                        {
-                                                            String path = Initilization.DB_PATH + Initilization.DB_NAME;
-                                                            db = SQLiteDatabase.openDatabase(path, null, 0);
-                                                            deleteNum=db.delete(Initilization.TABLE_NAME,Initilization.RSSURLID + " = "+RSSUID,null);
-                                                            db.close();
-                                                        }
                                                         if(ExceptionCode==0) {
                                                             SharedPreferences.Editor editor = sharedpreferences.edit();
                                                             editor.putBoolean(Main.NEWCHANNELADDED, true);
@@ -1033,10 +1016,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         /*Intent i = context.getPackageManager().getLaunchIntentForPackage( context.getPackageName() );
                         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(i);*/
-                        Intent i=new Intent(Main.this,Initilization.class);
-                        startActivity(i);
-                        progressdlg.dismiss();
-                        finish();
+                        recreate();
                         return;
                     }
                 }.start();
@@ -1071,7 +1051,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         String currentNewsCategory="";
         /**END**/
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
-        for(int i=0;i<15;i++)
+        for(int i=0;i<16;i++)
         {
             if(i==Initilization.CategoryId) {
                 int index=0;
@@ -1178,6 +1158,13 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     index++;
                 }
             }
+            if (i == Initilization.HTMLDesc) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
+                    Initilization.resultArray[index][Initilization.HTMLDesc] = e.text();
+                    index++;
+                }
+            }
         }
 
         for (int i = 0; i < 10000; i++) {
@@ -1199,6 +1186,8 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             values.put(Initilization.CATEGORYORNEWS,Initilization.resultArray[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
+            values.put(Initilization.RESERVED_4, Initilization.resultArray[i][Initilization.HTMLDesc]);
+
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
             else
@@ -1264,7 +1253,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
         /**END**/
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
-        for(int i=0;i<15;i++)
+        for(int i=0;i<16;i++)
         {
             if(i==Initilization.CategoryId) {
                 int index=0;
@@ -1371,6 +1360,13 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     index++;
                 }
             }
+            if (i == Initilization.HTMLDesc) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
+                    Initilization.resultArray[index][Initilization.HTMLDesc] = e.text();
+                    index++;
+                }
+            }
         }
 
         for (int i = 0; i < 10000; i++) {
@@ -1392,6 +1388,8 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             values.put(Initilization.CATEGORYORNEWS,Initilization.resultArray[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
+            values.put(Initilization.RESERVED_4, Initilization.resultArray[i][Initilization.HTMLDesc]);
+
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
             else

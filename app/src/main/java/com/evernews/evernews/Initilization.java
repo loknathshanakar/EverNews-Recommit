@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.acra.ACRA;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
 
 public class Initilization extends AppCompatActivity {
     public static final int CategoryId = 0;
@@ -42,6 +44,7 @@ public class Initilization extends AppCompatActivity {
     public static final int CategoryorNews = 12;
     public static final int FullText = 13;
     public static final int NewsUrl = 14;
+    public static final int HTMLDesc = 15;
     //Database related stuff
     public static final String TABLE_NAME = "FULLNEWS_REV2";                //FULLNEWS (OLDNAME) 2)FULLNEWS_REV1
     public static final String CATEGORYID = "CategoryId";
@@ -62,16 +65,16 @@ public class Initilization extends AppCompatActivity {
     public static final String NEWSURL = "NewsUrl";
     public static final String RESERVED_2 = "RESERVED_2";   /**USED FOR NEWS ID**/
     public static final String RESERVED_3 = "RESERVED_3";   /**USED FOR LONG TIME**/
-    public static final String RESERVED_4 = "RESERVED_4";
-    public static final String col[] = {CATEGORYID, CATEGORYNAME, DISPLAYORDER, RSSTITLE, RSSURL_DB, RSSURLID, NEWSID, NEWSTITLE, SUMMARY, NEWSIMAGE, NEWSDATE, NEWSDISPLAYORDER, CATEGORYORNEWS, FULLTEXT, NEWSURL,RESERVED_2,RESERVED_3};
+    public static final String RESERVED_4 = "RESERVED_4";   /** USED FOR HTMLDESC**/
+    public static final String col[] = {CATEGORYID, CATEGORYNAME, DISPLAYORDER, RSSTITLE, RSSURL_DB, RSSURLID, NEWSID, NEWSTITLE, SUMMARY, NEWSIMAGE, NEWSDATE, NEWSDISPLAYORDER, CATEGORYORNEWS, FULLTEXT, NEWSURL,RESERVED_2,RESERVED_3,RESERVED_4};
     public static long numRows=0;
     public static String SQL_CREATE_ENTRIES ="";
     public static String DB_PATH = "/data/data/com.evernews.evernews/databases/";
     public static String DB_NAME = "";
     public static String androidId="";
     public static int timeout = 30000;
-    public static String resultArray[][]=new String[10000][15];
-    public static String newsCategories[][]=new String[100][2];
+    public static String resultArray[][]=new String[10000][16];
+    //public static String newsCategories[][]=new String[100][2];
     public static int resultArrayLength=0;
     public static int newsCategoryLength=0;
     public static ArrayList<String> addOnList = new ArrayList <String>(10);
@@ -83,6 +86,7 @@ public class Initilization extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_initilization);
         getSupportActionBar().hide();
         DB_NAME=TABLE_NAME;
@@ -130,7 +134,7 @@ public class Initilization extends AppCompatActivity {
         String currentNewsCategory = "";
         /**END**/
         org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 16; i++) {
             if (i == Initilization.CategoryId) {
                 int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryId")) {
@@ -236,6 +240,13 @@ public class Initilization extends AppCompatActivity {
                     index++;
                 }
             }
+            if (i == Initilization.HTMLDesc) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
+                    Initilization.resultArray[index][Initilization.HTMLDesc] = e.text();
+                    index++;
+                }
+            }
         }
 
         for (int i = 0; i < 10000; i++) {
@@ -257,6 +268,7 @@ public class Initilization extends AppCompatActivity {
             values.put(Initilization.CATEGORYORNEWS, Initilization.resultArray[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT, Initilization.resultArray[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, Initilization.resultArray[i][Initilization.NewsUrl]);
+            values.put(Initilization.RESERVED_4, Initilization.resultArray[i][Initilization.HTMLDesc]);
 
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, Initilization.resultArray[i][Initilization.NewsId]);
@@ -358,7 +370,7 @@ public class Initilization extends AppCompatActivity {
             Initilization.resultArray[i][Initilization.CategoryorNews] = cur.getString(CategoryorNews);
             Initilization.resultArray[i][Initilization.FullText] = cur.getString(FullText);
             Initilization.resultArray[i][Initilization.NewsUrl] = cur.getString(NewsUrl);
-
+            Initilization.resultArray[i][Initilization.HTMLDesc] = cur.getString(17);
             currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
 
             int cuDispOrder = 0;

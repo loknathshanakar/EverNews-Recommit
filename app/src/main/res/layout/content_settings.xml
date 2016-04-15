@@ -326,7 +326,7 @@
                 android:layout_margin="10sp"
                 android:paddingLeft="20sp"
                 android:textSize="15sp"
-                android:text="Recomend to your friend"/>
+                android:text="Recommend to your friend"/>
             <View
                 android:layout_width="match_parent"
                 android:layout_margin="5sp"
