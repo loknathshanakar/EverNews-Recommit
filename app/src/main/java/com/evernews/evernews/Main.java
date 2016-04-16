@@ -61,9 +61,11 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class Main extends AppCompatActivity implements SignUp.OnFragmentInteractionListener,PostArticle.OnFragmentInteractionListener {
     /**
@@ -121,20 +123,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
 
     private Tracker mTracker;
-
-    /**
-     * Gets the default {@link Tracker} for this {@link Application}.
-     * @return tracker
-     */
-    synchronized public Tracker getDefaultTracker() {
-        if (mTracker == null) {
-            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
-            // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
-            mTracker = analytics.newTracker(R.xml.app_tracker);
-        }
-        return mTracker;
-    }
-
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -359,9 +347,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
         }
 
-
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        setAnimation();
         mTracker = application.getDefaultTracker();
         mTracker.setScreenName("In Main Screen");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
@@ -381,6 +367,12 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             getWindow().setAttributes(layoutParams); // Set params
         }
         /**END**/
+
+        /**Track Application**/
+        AnalyticsApplication application_new = (AnalyticsApplication) getApplication();
+        mTracker = application_new.getDefaultTracker();
+        mTracker.setScreenName("In Main Screen");
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     private PendingIntent pendingIntent1,pendingIntent2,pendingIntent3;
@@ -682,7 +674,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                             {
                                                                 String path = Initilization.DB_PATH + Initilization.DB_NAME;
                                                                 db = SQLiteDatabase.openDatabase(path, null, 0);
-                                                                deleteNum=db.delete(Initilization.TABLE_NAME,Initilization.RSSURLID + " = "+RSSUID,null);
+                                                                try {
+                                                                    deleteNum = db.delete(Initilization.TABLE_NAME, Initilization.RSSURLID + " = " + RSSUID, null);
+                                                                }catch (Exception e){
+                                                                    /****/
+                                                                }
                                                                 db.close();
                                                             }
                                                             Snackbar snackbar = Snackbar.make(v, "News removed successfully...updates are being changed...("+deleteNum+" records were removed)", Snackbar.LENGTH_LONG);
@@ -945,6 +941,8 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         return;
                     }
                 }.start();
+
+                new DeleteRecords().execute();
                 //super.onPostExecute(aVoid);
             }
         }
@@ -983,6 +981,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     ExceptionCode=2;
                     return null;
                 }
+                ExceptionCode=3;
                 e.printStackTrace();
             }
             return null;
@@ -1022,6 +1021,67 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 }.start();
                 //super.onPostExecute(aVoid);
             }
+        }
+    }
+
+    public static class DeleteRecords extends AsyncTask<String, String, String> {
+        SQLiteDatabase db ;
+        String content="";
+        int ExceptionCode=0;
+        @Override
+        protected String doInBackground(String... params) {
+            try
+            {
+                String fetchLink="http://rssapi.psweb.in/everapi.asmx/DeleteNewsFromAPP";//Over ride but should be Main.androidId
+                content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+            }
+            catch(Exception e)
+            {
+                if(e instanceof SocketTimeoutException) {
+                    ExceptionCode=1;
+                    return null;
+                }
+                if(e instanceof HttpStatusException) {
+                    ExceptionCode=2;
+                    return null;
+                }
+                ExceptionCode=3;
+                e.printStackTrace();
+            }
+            return("");
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            if(ExceptionCode==0) {
+                ArrayList  <String>newsIDSList=new ArrayList<>();
+                String removables="";
+                try {
+                    removables  = content.substring(content.indexOf("<Column1>") + 9, content.indexOf("</Column1>"));
+                    String[] newsIDS = removables.split(",");
+                    for(int i=0;i<newsIDS.length;i++) {
+                        newsIDSList.add(newsIDS[i]);
+                    }
+                } catch (Exception e) {
+                    //Means invalid data from server
+                }
+                int deletNum=0;
+                for(int i=0;i<newsIDSList.size();i++) {
+                    int t=0;
+                    try {
+                        t = db.delete(Initilization.TABLE_NAME, Initilization.NEWSID + " = " + newsIDSList.get(i), null);
+                    }catch (Exception e){
+                        /****/
+                    }
+                    deletNum=t+deletNum;
+                }
+                //Toast.makeText(context,"Records deleted " + deletNum,Toast.LENGTH_LONG).show();
+            }
+            db.close();
+        }
+        @Override
+        protected void onPreExecute() {
+            String path=Initilization.DB_PATH+Initilization.DB_NAME;
+            db=SQLiteDatabase.openDatabase(path,null,0);
         }
     }
 

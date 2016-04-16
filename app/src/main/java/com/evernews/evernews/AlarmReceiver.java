@@ -19,6 +19,6 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         String test = sdf.format(cal.getTime());
-        Toast.makeText(arg0, "I'm running : " + test, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(arg0, "I'm running : " + test, Toast.LENGTH_SHORT).show();
     }
 }

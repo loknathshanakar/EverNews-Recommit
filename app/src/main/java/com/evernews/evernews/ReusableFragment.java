@@ -57,7 +57,7 @@ public class ReusableFragment extends Fragment {
     private static GridView gridView;
     private static  String asyncCatId="";
     private static  String asyncNewsId="";
-    Tracker mTracker;
+    boolean passKey=false;
     // private static ProgressBar progressBar;
     SQLiteDatabase db;
     CallbackManager callbackManager;
@@ -101,7 +101,21 @@ public class ReusableFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-
+        ArrayList  <String>defaultTabs=new ArrayList<>();
+        defaultTabs.add("Top News");
+        defaultTabs.add("Biz");
+        defaultTabs.add("Tech");
+        defaultTabs.add("India");
+        defaultTabs.add("World");
+        defaultTabs.add("Entertainment");
+        defaultTabs.add("Politics");
+        defaultTabs.add("LifeStyle");
+        defaultTabs.add("Sports");
+        String tabName=getArguments().getString(TAB_NAME);
+        if(defaultTabs.contains(tabName))
+            passKey=false;
+        else
+            passKey=true;
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         gridView = (GridView)rootView.findViewById(R.id.gridview);
         // progressBar=(ProgressBar)rootView.findViewById(R.id.progress_frag);
@@ -270,7 +284,7 @@ public class ReusableFragment extends Fragment {
                                         asyncNewsId=itemCollection.get(itemCollection.size()-1).getNewsID();
                                         asyncCatId=itemCollection.get(itemCollection.size()-1).getCategoryID();
                                         Initilization.androidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
-                                        String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadNextNewsForCategory?CategoryId="+asyncCatId+"&LastNewsId="+asyncNewsId;//+Initilization.androidId;//Over ride but should be Main.androidId
+                                        String fetchLink="http://rssapi.psweb.in/everapi.asmx/LoadMoreNewsForCategory?CategoryId="+asyncCatId+"&LastNewsId="+asyncNewsId;//+"&NewsChannel="+passKey;//+Initilization.androidId;//Over ride but should be Main.androidId
                                         content= Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
                                         content=content.replace("\n","$$$$");
                                     }
@@ -763,7 +777,7 @@ public class ReusableFragment extends Fragment {
             values.put(Initilization.CATEGORYORNEWS,tempResults[i][Initilization.CategoryorNews]);
             values.put(Initilization.FULLTEXT,tempResults[i][Initilization.FullText]);
             values.put(Initilization.NEWSURL, tempResults[i][Initilization.NewsUrl]);
-            values.put(Initilization.RESERVED_4, Initilization.resultArray[i][Initilization.HTMLDesc]);
+            values.put(Initilization.RESERVED_4, tempResults[i][Initilization.HTMLDesc]);
 
             if(Initilization.resultArray[i][Initilization.CategoryId].compareTo("2")!=0)
                 values.put(Initilization.RESERVED_2, tempResults[i][Initilization.NewsId]);
@@ -910,6 +924,7 @@ public class ReusableFragment extends Fragment {
             refreshLayout.setRefreshing(false);
             refreshLayout.destroyDrawingCache();
             refreshLayout.clearAnimation();
+            new Main.DeleteRecords().execute();
             Main.progress.setVisibility(View.GONE);
             if (ExceptionCode > 0) {
                 if (ExceptionCode == 1)
@@ -918,7 +933,7 @@ public class ReusableFragment extends Fragment {
                     Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
             }
             if (content != null) {
-                String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
+                String result = content.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
 
                 parseResultsMAIN(result);
 
@@ -937,5 +952,4 @@ public class ReusableFragment extends Fragment {
             }
         }
     }
-
 }

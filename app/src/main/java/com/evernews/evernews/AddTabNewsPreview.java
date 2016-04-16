@@ -2,9 +2,11 @@ package com.evernews.evernews;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
@@ -173,10 +175,27 @@ public class AddTabNewsPreview extends DialogFragment {
                             editor.apply();
                             Snackbar snackbar = Snackbar.make(add, "News added successfully...("+RSSUID+")", Snackbar.LENGTH_LONG);
                             snackbar.show();
+
+                            new CountDownTimer(2000, 1000) {
+                                public void onTick(long millisUntilFinished) {
+                                }
+                                public void onFinish() {
+                                    dismiss();
+                                }
+                            }.start();
                         }
                         else{
                             Snackbar snackbar = Snackbar.make(add, "Sorry news could not be added...", Snackbar.LENGTH_LONG);
                             snackbar.show();
+                            new CountDownTimer(2000, 1000) {
+
+                                public void onTick(long millisUntilFinished) {
+                                }
+
+                                public void onFinish() {
+                                    dismiss();
+                                }
+                            }.start();
                         }
                     }
                 }.execute();
