@@ -332,7 +332,7 @@ public class ReusableFragment extends Fragment {
                                         if(tabNameI==resultsID){
                                             asyncitems.remove(0);
                                             itemCollection.addAll(asyncitems);
-                                            //customAdapter.notifyDataSetChanged();
+                                            //customAdapter.notifyDataSetChanged();-
                                             //Toast.makeText(getContext(),"More news loaded",Toast.LENGTH_LONG).show();
                                         }
                                         Main.progress.setVisibility(View.GONE);
@@ -753,7 +753,7 @@ public class ReusableFragment extends Fragment {
             if (i == Initilization.HTMLDesc) {
                 int index = 0;
                 for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
-                    Initilization.resultArray[index][Initilization.HTMLDesc] = e.text();
+                    tempResults[index][Initilization.HTMLDesc] = e.text();
                     index++;
                 }
             }
@@ -924,7 +924,7 @@ public class ReusableFragment extends Fragment {
             refreshLayout.setRefreshing(false);
             refreshLayout.destroyDrawingCache();
             refreshLayout.clearAnimation();
-            new Main.DeleteRecords().execute();
+            //new Main.DeleteRecords().execute();
             Main.progress.setVisibility(View.GONE);
             if (ExceptionCode > 0) {
                 if (ExceptionCode == 1)

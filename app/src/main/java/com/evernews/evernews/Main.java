@@ -115,7 +115,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     ShareDialog shareDialog;
 
     Context context;
-
+    static Context contextS;
     TabLayout tabLayout;
     LinearLayout tabStrip;
     View virtualView;
@@ -492,7 +492,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         getSupportActionBar().setLogo(R.drawable.logo);
         getSupportActionBar().setTitle("");
         context=this;
-
+        contextS=this;
         /*Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
         {
             @Override
@@ -917,31 +917,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
             if (content != null) {
                 parseResultsRefresh(content);
-                final ProgressDialog progressdlg = new ProgressDialog(context);
-                progressdlg.setMessage("Updating Application");
-                progressdlg.setTitle("Updating contents,Please Wait...");
-                progressdlg.setCancelable(false);
-                progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                progressdlg.setIndeterminate(true);
-                progressdlg.show();
-                new CountDownTimer(1000, 1000) {
-
-                    public void onTick(long millisUntilFinished) {
-                    }
-
-                    public void onFinish() {
-                        //recreate();
-                        SharedPreferences.Editor editor = sharedpreferences.edit();
-                        editor.putBoolean(Main.NEWCHANNELADDED, false);
-                        editor.apply();
-                        Intent i=new Intent(Main.this,Initilization.class);
-                        finish();
-                        startActivity(i);
-                        progressdlg.dismiss();
-                        return;
-                    }
-                }.start();
-
                 new DeleteRecords().execute();
                 //super.onPostExecute(aVoid);
             }
@@ -1024,7 +999,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
     }
 
-    public static class DeleteRecords extends AsyncTask<String, String, String> {
+    class DeleteRecords extends AsyncTask<String, String, String> {
         SQLiteDatabase db ;
         String content="";
         int ExceptionCode=0;
@@ -1052,36 +1027,55 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
         @Override
         protected void onPostExecute(String result) {
+            int deletNum=0;
             if(ExceptionCode==0) {
                 ArrayList  <String>newsIDSList=new ArrayList<>();
                 String removables="";
                 try {
+                    String path = Initilization.DB_PATH + Initilization.DB_NAME;
+                    db = SQLiteDatabase.openDatabase(path, null, 0);
                     removables  = content.substring(content.indexOf("<Column1>") + 9, content.indexOf("</Column1>"));
                     String[] newsIDS = removables.split(",");
+                    deletNum=db.delete(Initilization.TABLE_NAME, Initilization.NEWSID + "=?", newsIDS);
                     for(int i=0;i<newsIDS.length;i++) {
-                        newsIDSList.add(newsIDS[i]);
+                        db.execSQL("DELETE FROM " + Initilization.TABLE_NAME + " WHERE " + Initilization.NEWSID + " = '" + newsIDS[i] + "' ");
                     }
                 } catch (Exception e) {
                     //Means invalid data from server
                 }
-                int deletNum=0;
-                for(int i=0;i<newsIDSList.size();i++) {
-                    int t=0;
-                    try {
-                        t = db.delete(Initilization.TABLE_NAME, Initilization.NEWSID + " = " + newsIDSList.get(i), null);
-                    }catch (Exception e){
-                        /****/
-                    }
-                    deletNum=t+deletNum;
-                }
-                //Toast.makeText(context,"Records deleted " + deletNum,Toast.LENGTH_LONG).show();
             }
             db.close();
+            if(deletNum>0)
+                Toast.makeText(context,"Records deleted : " + deletNum,Toast.LENGTH_LONG).show();
+
+            final ProgressDialog progressdlg = new ProgressDialog(context);
+            progressdlg.setMessage("Updating Application");
+            progressdlg.setTitle("Updating contents,Please Wait...");
+            progressdlg.setCancelable(false);
+            progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressdlg.setIndeterminate(true);
+            progressdlg.show();
+            new CountDownTimer(1000, 1000) {
+
+                public void onTick(long millisUntilFinished) {
+                }
+
+                public void onFinish() {
+                    //recreate();
+                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                    editor.putBoolean(Main.NEWCHANNELADDED, false);
+                    editor.apply();
+                    Intent i=new Intent(Main.this,Initilization.class);
+                    finish();
+                    startActivity(i);
+                    progressdlg.dismiss();
+                    return;
+                }
+            }.start();
+
         }
         @Override
         protected void onPreExecute() {
-            String path=Initilization.DB_PATH+Initilization.DB_NAME;
-            db=SQLiteDatabase.openDatabase(path,null,0);
         }
     }
 
