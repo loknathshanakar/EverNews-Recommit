@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
+import java.util.Random;
 import java.util.Set;
 
 
@@ -279,7 +280,9 @@ public class Initilization extends AppCompatActivity {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
                 Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
                 long timeInMillisSinceEpoch = date.getTime();
-                long timeInSecondsSinceEpoch = timeInMillisSinceEpoch / (60);
+                Random r = new Random();
+                int i1 = r.nextInt(1000);
+                long timeInSecondsSinceEpoch = (timeInMillisSinceEpoch / (60))+i1;
                 values.put(Initilization.RESERVED_3, timeInSecondsSinceEpoch);
             }catch(ParseException e){
                 values.put(Initilization.RESERVED_3,0);
