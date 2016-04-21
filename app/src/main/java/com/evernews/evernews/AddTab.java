@@ -242,8 +242,8 @@ public class AddTab extends AppCompatActivity {
         int id = item.getItemId();
 
         if(id==android.R.id.home){
-            Intent intent=new Intent(AddTab.this,Main.class);
-            startActivity(intent);
+            //Intent intent=new Intent(AddTab.this,Main.class);
+            //startActivity(intent);
             finish();
             return (true);
         }

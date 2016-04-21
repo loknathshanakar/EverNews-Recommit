@@ -274,71 +274,15 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         super.onResume();  // Always call the superclass method first
 
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        pendingIntent1 = PendingIntent.getBroadcast(this, 387032, alarmIntent, 0);
-        pendingIntent2 = PendingIntent.getService(context, 387033, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
-        pendingIntent3 = PendingIntent.getService(context, 387034, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent1 = PendingIntent.getBroadcast(context, 387032, alarmIntent, 0);
+        pendingIntent2 = PendingIntent.getBroadcast(context, 387033, alarmIntent, 0);
+        pendingIntent3 = PendingIntent.getBroadcast(context, 387034, alarmIntent, 0);
 
-        final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
-        boolean pass=false;
-        startAlarm(viewGroup);
-        if(pass==true && sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==1 &&(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1 || sharedpreferences.getInt(Main.ONALRAMCHANGED2,-1)==1 ||sharedpreferences.getInt(Main.ONALRAMCHANGED3,-1)==1)) {
-            //startAlarm(viewGroup);
-            //Register AlarmManager Broadcast receive.
-            firingCal= Calendar.getInstance();
-            firingCal.set(Calendar.HOUR, 1); // At the hour you want to fire the alarm
-            firingCal.set(Calendar.MINUTE, 35); // alarm minute
-            firingCal.set(Calendar.SECOND, 0); // and alarm second
 
-            Calendar calendarM = Calendar.getInstance();
-            Calendar calendarN = Calendar.getInstance();
-            Calendar calendarE = Calendar.getInstance();
-
-            Date d1=convertStr2Date(sharedpreferences.getString(Main.MORNINGTIME, "00:00 AM"));
-            Date d2=convertStr2Date(sharedpreferences.getString(Main.NOONTIME, "00:00 AM"));
-            Date d3=convertStr2Date(sharedpreferences.getString(Main.EVENINGTIME,"00:00 AM"));
-
-            calendarM.set(Calendar.HOUR_OF_DAY, d1.getHours()); // For 1 PM or 2 PM
-            calendarM.set(Calendar.MINUTE, d1.getMinutes());
-            calendarM.set(Calendar.SECOND, 0);
-            //calendarM.add(Calendar.DAY_OF_YEAR, 1);
-
-            calendarN.set(Calendar.HOUR_OF_DAY, d2.getHours()); // For 1 PM or 2 PM
-            calendarN.set(Calendar.MINUTE, d2.getMinutes());
-            calendarN.set(Calendar.SECOND, 0);
-            //calendarN.add(Calendar.DAY_OF_YEAR, 1);
-
-            calendarE.set(Calendar.HOUR_OF_DAY, d3.getHours()); // For 1 PM or 2 PM
-            calendarE.set(Calendar.MINUTE, d3.getMinutes());
-            calendarE.set(Calendar.SECOND, 0);
-            //calendarE.add(Calendar.DAY_OF_YEAR, 1);
-
-            long intendedTime = firingCal.getTimeInMillis();
-            SharedPreferences.Editor editor=sharedpreferences.edit();
-            registerMyAlarmBroadcast();
-            if(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1) {
-                alarmManager1.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, myPendingIntent1);
-                editor.putInt(Main.ONALRAMCHANGED1,0);
-                editor.apply();
-            }
-            if(sharedpreferences.getInt(Main.ONALRAMCHANGED2,-1)==1) {
-                alarmManager2.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, myPendingIntent2);
-                editor.putInt(Main.ONALRAMCHANGED2,0);
-                editor.apply();
-            }
-            if(sharedpreferences.getInt(Main.ONALRAMCHANGED3,-1)==1) {
-                alarmManager3.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, myPendingIntent3);
-                editor.putInt(Main.ONALRAMCHANGED3,0);
-                editor.apply();
-            }
-
-        }
-        else {
-            //cancelAlarm(viewGroup);
-            if(myBroadcastReceiver!=null) {
-                unregisterReceiver(myBroadcastReceiver);
-                UnregisterAlarmBroadcast();
-            }
-        }
+        if(sharedpreferences.getInt(NOTIFICATIONENABLED,-1)==1)
+            startAlarm(viewGroup);
+        else
+            cancelAlarm(viewGroup);
 
         if(sharedpreferences.getBoolean(NEWCHANNELADDED,false)) {
             Toast.makeText(context,"Channel change detected...Updating data please wait as changes are applied...",Toast.LENGTH_LONG).show();
@@ -348,8 +292,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         /**RESTORE BRIGHTNESS**/
         {
             float arg1=sharedpreferences.getFloat(Main.SLIDERCURRENT,250);
-            float BackLightValue = (float)arg1/100;
-            int curBrightnessValue=0;
+            float BackLightValue = arg1/100;
             WindowManager.LayoutParams layoutParams = getWindow().getAttributes(); // Get Params
             layoutParams.screenBrightness = BackLightValue; // Set Value
             getWindow().setAttributes(layoutParams); // Set params
@@ -394,87 +337,75 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         calendarM.set(Calendar.HOUR_OF_DAY, d1.getHours()); // For 1 PM or 2 PM
         calendarM.set(Calendar.MINUTE, d1.getMinutes());
         calendarM.set(Calendar.SECOND, 0);
-        //calendarM.add(Calendar.DAY_OF_YEAR, 1);
 
         calendarN.set(Calendar.HOUR_OF_DAY, d2.getHours()); // For 1 PM or 2 PM
         calendarN.set(Calendar.MINUTE, d2.getMinutes());
         calendarN.set(Calendar.SECOND, 0);
-        //calendarN.add(Calendar.DAY_OF_YEAR, 1);
 
         calendarE.set(Calendar.HOUR_OF_DAY, d3.getHours()); // For 1 PM or 2 PM
         calendarE.set(Calendar.MINUTE, d3.getMinutes());
         calendarE.set(Calendar.SECOND, 0);
-        //calendarE.add(Calendar.DAY_OF_YEAR, 1);
 
-        /*managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent1);
-        managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
-        managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);*/
-
+        boolean shown=false;
         if(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1 && sharedpreferences.getInt(NOTIFICATIONENABLED,-1)==1) {
             Log.i("#setMorning", "Going to register Intent.RegisterAlramBroadcast Morning");
-            SharedPreferences.Editor editor=sharedpreferences.edit();
-            //managerM.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 60000, pendingIntent1);
+            SharedPreferences.Editor editor = sharedpreferences.edit();
             managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent1);
-            editor.putInt(Main.ONALRAMCHANGED1,0);
+            editor.putInt(Main.ONALRAMCHANGED1, 0);
             editor.commit();
+            if (!shown){
+                Snackbar snackbar = Snackbar.make(view, "Push Notification Time Updated.", Snackbar.LENGTH_LONG);
+                snackbar.show();
+                shown = true;
+            }
         }
-       // managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
-       // managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);
-        //Toast.makeText(this, "Push notification Enabled", Toast.LENGTH_SHORT).show();
-    }
 
-    PendingIntent myPendingIntent1,myPendingIntent2,myPendingIntent3;
-    AlarmManager alarmManager1,alarmManager2,alarmManager3;
-    BroadcastReceiver myBroadcastReceiver;
-    Calendar firingCal;
-    private void registerMyAlarmBroadcast()
-    {
-        Log.i("#log", "Going to register Intent.RegisterAlramBroadcast");
-
-        //This is the call back function(BroadcastReceiver) which will be call when your
-        //alarm time will reached.
-        myBroadcastReceiver = new AlarmReceiver();
-
-        registerReceiver(myBroadcastReceiver, new IntentFilter("com.evernews.evernews") );
-        myPendingIntent1 = PendingIntent.getBroadcast( this, 0, new Intent("com.evernews.evernews"),0 );
-        myPendingIntent2 = PendingIntent.getBroadcast( this, 0, new Intent("com.evernews.evernews"),0 );
-        myPendingIntent3 = PendingIntent.getBroadcast( this, 0, new Intent("com.evernews.evernews"),0 );
-        alarmManager1 = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
-        alarmManager2 = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
-        alarmManager3 = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
-    }
-    private void UnregisterAlarmBroadcast()
-    {
-        if(alarmManager1!=null && myPendingIntent1!=null) {
-            try {
-                alarmManager1.cancel(myPendingIntent1);
-                getBaseContext().unregisterReceiver(myBroadcastReceiver);
-            }catch(Exception e){}
+        if(sharedpreferences.getInt(Main.ONALRAMCHANGED2,-1)==1 && sharedpreferences.getInt(NOTIFICATIONENABLED,-1)==1) {
+            Log.i("#setEvening", "Going to register Intent.RegisterAlramBroadcast Evening");
+            SharedPreferences.Editor editor=sharedpreferences.edit();
+            managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
+            editor.putInt(Main.ONALRAMCHANGED2,0);
+            editor.commit();
+            if (!shown){
+                Snackbar snackbar = Snackbar.make(view, "Push Notification Time Updated.", Snackbar.LENGTH_LONG);
+                snackbar.show();
+                shown = true;
+            }
         }
-    }
 
-    @Override
-    protected void onDestroy() {
-        if(myBroadcastReceiver!=null)
-            unregisterReceiver(myBroadcastReceiver);
-        super.onDestroy();
+        if(sharedpreferences.getInt(Main.ONALRAMCHANGED3,-1)==1 && sharedpreferences.getInt(NOTIFICATIONENABLED,-1)==1) {
+            Log.i("#setNight", "Going to register Intent.RegisterAlramBroadcast Night");
+            SharedPreferences.Editor editor=sharedpreferences.edit();
+            managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);
+            editor.putInt(Main.ONALRAMCHANGED3,0);
+            editor.commit();
+            if (!shown){
+                Snackbar snackbar = Snackbar.make(view, "Push Notification Time Updated.", Snackbar.LENGTH_LONG);
+                snackbar.show();
+                shown = true;
+            }
+        }
+        //Toast.makeText(this, "Push Notification Time Updated.", Toast.LENGTH_SHORT).show();
+
     }
 
     public void cancelAlarm(View view) {
-        if (managerN != null && pendingIntent1!=null ) {
+        if (managerN != null && pendingIntent1!=null && pendingIntent2!=null && pendingIntent3!=null ) {
             managerN.cancel(pendingIntent1);
             managerN.cancel(pendingIntent3);
             managerN.cancel(pendingIntent2);
-            Toast.makeText(this, "Push Notification Disabled Canceled", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Push Notification Disabled Canceled", Toast.LENGTH_SHORT).show();
+            Snackbar snackbar = Snackbar.make(view, "Push Notification Disabled Canceled", Snackbar.LENGTH_LONG);
+            snackbar.show();
         }
     }
-
+    ViewGroup viewGroup=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main);
-
+        viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
         //Thread.setDefaultUncaughtExceptionHandler(handleAppCrash);
         AnalyticsApplication application = (AnalyticsApplication) getApplication();
         mTracker = application.getDefaultTracker();
@@ -777,7 +708,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 return true;
 
             case R.id.action_refresh:
-                Toast.makeText(context,"Refresh in background has started...",Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context,"Refresh in background has started...",Toast.LENGTH_SHORT).show();
+                Snackbar snackbar = Snackbar.make(viewGroup, "Refresh in background has started...", Snackbar.LENGTH_LONG);
+                snackbar.show();
                 new GetNewsTaskRestart().execute();
                 return true;
 
