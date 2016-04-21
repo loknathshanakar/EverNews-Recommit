@@ -383,6 +383,7 @@ public class ReusableFragment extends Fragment {
                         String Summary = Initilization.resultArray[j][Initilization.Summary];
                         String newsDate = Initilization.resultArray[j][Initilization.NewsDate];
                         String HTMLDesc = Initilization.resultArray[j][Initilization.HTMLDesc];
+                        int xj=j;
                         items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,Summary,newsDate,HTMLDesc));
                         /*if(!items.contains(prevObj)){
                             items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
@@ -586,7 +587,7 @@ public class ReusableFragment extends Fragment {
 
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
-                    Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                    Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate].replace("T"," ").replace("+5:30",""));
                     long timeInMillisSinceEpoch = date.getTime();
                     Random r = new Random();
                     int i1 = r.nextInt(1000);
@@ -790,7 +791,7 @@ public class ReusableFragment extends Fragment {
 
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
-                Date date = sdf.parse(tempResults[i][Initilization.NewsDate]);
+                Date date = sdf.parse(tempResults[i][Initilization.NewsDate].replace("T"," ").replace("+5:30",""));
                 long timeInMillisSinceEpoch = date.getTime();
                 Random r = new Random();
                 int i1 = r.nextInt(1000);

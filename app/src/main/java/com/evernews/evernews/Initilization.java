@@ -278,7 +278,7 @@ public class Initilization extends AppCompatActivity {
 
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
-                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate].replace("T"," ").replace("+5:30",""));
                 long timeInMillisSinceEpoch = date.getTime();
                 Random r = new Random();
                 int i1 = r.nextInt(1000);

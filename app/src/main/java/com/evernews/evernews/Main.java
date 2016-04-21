@@ -914,7 +914,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
             if (content != null) {
                 parseResultsRefresh(content);
-                final ProgressDialog progressdlg = new ProgressDialog(context );
+                final ProgressDialog progressdlg = new ProgressDialog(context);
                 progressdlg.setMessage("Updating Application");
                 progressdlg.setTitle("Updating contents,Please Wait...");
                 progressdlg.setCancelable(false);
@@ -931,10 +931,10 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         SharedPreferences.Editor editor = sharedpreferences.edit();
                         editor.putBoolean(Main.NEWCHANNELADDED, false);
                         editor.apply();
+                        progressdlg.dismiss();//Safer here
                         Intent i=new Intent(Main.this,Initilization.class);
                         finish();
                         startActivity(i);
-                        progressdlg.dismiss();
                         return;
                     }
                 }.start();
@@ -1258,7 +1258,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
-                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate].replace("T"," ").replace("+5:30",""));
                 long timeInMillisSinceEpoch = date.getTime();
                 Random r = new Random();
                 int i1 = r.nextInt(1000);
@@ -1462,7 +1462,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
-                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate]);
+                Date date = sdf.parse(Initilization.resultArray[i][Initilization.NewsDate].replace("T"," ").replace("+5:30",""));
                 long timeInMillisSinceEpoch = date.getTime();
                 Random r = new Random();
                 int i1 = r.nextInt(1000);
