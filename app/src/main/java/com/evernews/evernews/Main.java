@@ -206,14 +206,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
         }
     }
-    public void shareByOther(String text) {
-        try {
-            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
-            sharingIntent.setType("text/plain");
-            sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, text);
-            startActivity(Intent.createChooser(sharingIntent, getResources().getString(R.string.share_using)));
-        }catch (Exception e){e.printStackTrace();}
-    }
 
     public void setAnimation(){
         /**Set animation type**/
@@ -282,12 +274,14 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         super.onResume();  // Always call the superclass method first
 
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        pendingIntent1 = PendingIntent.getService(context, 0, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
-        pendingIntent2 = PendingIntent.getService(context, 0, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
-        pendingIntent3 = PendingIntent.getService(context, 0, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent1 = PendingIntent.getBroadcast(this, 387032, alarmIntent, 0);
+        pendingIntent2 = PendingIntent.getService(context, 387033, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent3 = PendingIntent.getService(context, 387034, alarmIntent,PendingIntent.FLAG_UPDATE_CURRENT);
 
         final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
-        if(sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==1 &&(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1 || sharedpreferences.getInt(Main.ONALRAMCHANGED2,-1)==1 ||sharedpreferences.getInt(Main.ONALRAMCHANGED3,-1)==1)) {
+        boolean pass=false;
+        startAlarm(viewGroup);
+        if(pass==true && sharedpreferences.getInt(Main.NOTIFICATIONENABLED,-1)==1 &&(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1 || sharedpreferences.getInt(Main.ONALRAMCHANGED2,-1)==1 ||sharedpreferences.getInt(Main.ONALRAMCHANGED3,-1)==1)) {
             //startAlarm(viewGroup);
             //Register AlarmManager Broadcast receive.
             firingCal= Calendar.getInstance();
@@ -346,11 +340,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
         }
 
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        mTracker.setScreenName("In Main Screen");
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-
         if(sharedpreferences.getBoolean(NEWCHANNELADDED,false)) {
             Toast.makeText(context,"Channel change detected...Updating data please wait as changes are applied...",Toast.LENGTH_LONG).show();
             new GetNewsTaskRestart().execute();
@@ -388,6 +377,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         return(convertedDate);
     }
     public void startAlarm(View view) {
+
         managerM = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         managerN = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         managerE = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
@@ -396,6 +386,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         Calendar calendarM = Calendar.getInstance();
         Calendar calendarN = Calendar.getInstance();
         Calendar calendarE = Calendar.getInstance();
+
         Date d1=convertStr2Date(sharedpreferences.getString(Main.MORNINGTIME, "00:00 AM"));
         Date d2=convertStr2Date(sharedpreferences.getString(Main.NOONTIME, "00:00 AM"));
         Date d3=convertStr2Date(sharedpreferences.getString(Main.EVENINGTIME,"00:00 AM"));
@@ -403,25 +394,32 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         calendarM.set(Calendar.HOUR_OF_DAY, d1.getHours()); // For 1 PM or 2 PM
         calendarM.set(Calendar.MINUTE, d1.getMinutes());
         calendarM.set(Calendar.SECOND, 0);
-        calendarM.add(Calendar.DAY_OF_YEAR, 1);
+        //calendarM.add(Calendar.DAY_OF_YEAR, 1);
 
         calendarN.set(Calendar.HOUR_OF_DAY, d2.getHours()); // For 1 PM or 2 PM
         calendarN.set(Calendar.MINUTE, d2.getMinutes());
         calendarN.set(Calendar.SECOND, 0);
-        calendarN.add(Calendar.DAY_OF_YEAR, 1);
+        //calendarN.add(Calendar.DAY_OF_YEAR, 1);
 
         calendarE.set(Calendar.HOUR_OF_DAY, d3.getHours()); // For 1 PM or 2 PM
         calendarE.set(Calendar.MINUTE, d3.getMinutes());
         calendarE.set(Calendar.SECOND, 0);
-        calendarE.add(Calendar.DAY_OF_YEAR, 1);
+        //calendarE.add(Calendar.DAY_OF_YEAR, 1);
 
         /*managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent1);
         managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
         managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);*/
 
-        managerM.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 10000, pendingIntent1);
-        managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
-        managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);
+        if(sharedpreferences.getInt(Main.ONALRAMCHANGED1,-1)==1 && sharedpreferences.getInt(NOTIFICATIONENABLED,-1)==1) {
+            Log.i("#setMorning", "Going to register Intent.RegisterAlramBroadcast Morning");
+            SharedPreferences.Editor editor=sharedpreferences.edit();
+            //managerM.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 60000, pendingIntent1);
+            managerM.setRepeating(AlarmManager.RTC_WAKEUP, calendarM.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent1);
+            editor.putInt(Main.ONALRAMCHANGED1,0);
+            editor.commit();
+        }
+       // managerN.setRepeating(AlarmManager.RTC_WAKEUP, calendarN.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent2);
+       // managerE.setRepeating(AlarmManager.RTC_WAKEUP, calendarE.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent3);
         //Toast.makeText(this, "Push notification Enabled", Toast.LENGTH_SHORT).show();
     }
 
