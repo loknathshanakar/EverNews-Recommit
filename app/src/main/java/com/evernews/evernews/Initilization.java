@@ -357,7 +357,7 @@ public class Initilization extends AppCompatActivity {
         String currentNewsCategory = "";
         cur.moveToFirst();
         /**END**/
-        for (int i = 0; i < numRows; i++) {
+        for (int i = 0; i < num; i++) {
             Initilization.resultArray[i][Initilization.CategoryId] = cur.getString(CategoryId);//lets get data to database
             Initilization.resultArray[i][Initilization.Category] = cur.getString(Category);
             Initilization.resultArray[i][Initilization.DisplayOrder] = cur.getString(DisplayOrder);
@@ -373,9 +373,8 @@ public class Initilization extends AppCompatActivity {
             Initilization.resultArray[i][Initilization.CategoryorNews] = cur.getString(CategoryorNews);
             Initilization.resultArray[i][Initilization.FullText] = cur.getString(FullText);
             Initilization.resultArray[i][Initilization.NewsUrl] = cur.getString(NewsUrl);
-            Initilization.resultArray[i][Initilization.HTMLDesc] = cur.getString(17);
+            Initilization.resultArray[i][Initilization.HTMLDesc] = cur.getString(17);   //dont cange 17
             currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
-
             int cuDispOrder = 0;
             try {
                 Initilization.resultArrayLength++;

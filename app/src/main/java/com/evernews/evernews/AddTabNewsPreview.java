@@ -1,9 +1,11 @@
 package com.evernews.evernews;
 
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -33,8 +35,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 public class AddTabNewsPreview extends DialogFragment {
     SwipeRefreshLayout refresh;
@@ -42,6 +48,8 @@ public class AddTabNewsPreview extends DialogFragment {
     private static String imageURl="";
     private Context context;
     private static String channelDetails="";
+    boolean newsReady=false;
+    String tempResults[][]=new String[1000][16];
     public interface AddListener {
         void onAdd(AddTabNewsPreview dialog);
         void onRemove(AddTabNewsPreview dialog);
@@ -75,7 +83,7 @@ public class AddTabNewsPreview extends DialogFragment {
         gridView.setAdapter(customAdapter);
         sharedpreferences = getActivity().getSharedPreferences(Main.USERLOGINDETAILS, Context.MODE_PRIVATE);
         new AsyncTask<Void, Void, String>() {
-            int ExceptionCode=0;    //Sucess
+            int ExceptionCode=0;    //Success
             String returnContent="";
             @Override
             protected String doInBackground(Void... params) {
@@ -100,6 +108,7 @@ public class AddTabNewsPreview extends DialogFragment {
                     gridView.setAdapter(customAdapter);
                     channelName.setText(tempItems.get(0).getnewsName());
                     channelMeta.setText(channelDetails);
+                    newsReady=true;
                     }
                     else{
                         List<ItemObject> items = new ArrayList<>();
@@ -135,7 +144,7 @@ public class AddTabNewsPreview extends DialogFragment {
                     ProgressDialog progressdlg;
                     @Override
                     protected void onProgressUpdate(Integer... text) {
-                        if(text[0]==1)
+                        if(text[0]==1 && newsReady==true)
                             progressdlg.setMessage("Adding channel");
                     }
 
@@ -173,21 +182,24 @@ public class AddTabNewsPreview extends DialogFragment {
                             SharedPreferences.Editor editor = sharedpreferences.edit();
                             editor.putBoolean(Main.NEWCHANNELADDED, true);
                             editor.apply();
+                            AddNewsTab();
                             Snackbar snackbar = Snackbar.make(add, "News added successfully...("+RSSUID+")", Snackbar.LENGTH_LONG);
+                            newsReady=false;
                             snackbar.show();
+                            AddNewsTab();
 
-                            new CountDownTimer(2000, 1000) {
+                            new CountDownTimer(1500, 500) {
                                 public void onTick(long millisUntilFinished) {
                                 }
                                 public void onFinish() {
                                     dismiss();
                                 }
                             }.start();
+
                         }
                         else{
                             Snackbar snackbar = Snackbar.make(add, "Sorry news could not be added...", Snackbar.LENGTH_LONG);
-                            snackbar.show();
-                            new CountDownTimer(2000, 1000) {
+                            new CountDownTimer(1500, 500) {
 
                                 public void onTick(long millisUntilFinished) {
                                 }
@@ -196,6 +208,7 @@ public class AddTabNewsPreview extends DialogFragment {
                                     dismiss();
                                 }
                             }.start();
+                            snackbar.show();
                         }
                     }
                 }.execute();
@@ -211,34 +224,194 @@ public class AddTabNewsPreview extends DialogFragment {
         super.onViewCreated(view, bundle);
     }
 
-    public List<ItemObject> parseResults(String response)
-    {
-       /*org.jsoup.nodes.Document doc2 = Jsoup.parse(response, "", Parser.xmlParser());
-        for ( org.jsoup.nodes.Element e : doc2.select("NewsImage")) {
-            System.out.println(e.text());
-        }*/
+    public void AddNewsTab() {
+        ContentValues values = new ContentValues();
+        String path = Initilization.DB_PATH + Initilization.DB_NAME;
+        SQLiteDatabase db = SQLiteDatabase.openDatabase(path, null, 0);
 
-        List<ItemObject> items = new ArrayList<>();
-        XMLDOMParser parser = new XMLDOMParser();
-        InputStream stream = new ByteArrayInputStream(response.getBytes());
-        Document doc = parser.getDocument(stream);
-        NodeList nodeList=null;
-        try {
-            nodeList = doc.getElementsByTagName("Table");
-        }catch (Exception e){}
-        if(nodeList!=null) {
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Element e = (Element) nodeList.item(i);
-                String NewsImage = (parser.getValue(e, "NewsImage"));
-                String NewsTitle = (parser.getValue(e, "NewsTitle"));
-                String RSSTitle = (parser.getValue(e, "RSSTitle"));
-                String NewsId = (parser.getValue(e, "NewsId"));
-                String CATID = (parser.getValue(e, "RSSUrlId"));
-                String NewsDate = (parser.getValue(e, "NewsDate"));
-                items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CATID,"FullText","NewsLink","Summary",NewsDate,"NA"));
+        for (int i = 0; i < 1000; i++) {
+            if (tempResults[i][Initilization.CategoryId].contains("NULL") || tempResults[i][Initilization.NewsId].contains("NULL")) {
+                continue;
+            }
+            values.put(Initilization.CATEGORYID, tempResults[i][Initilization.RSSUrlId]);
+            values.put(Initilization.CATEGORYNAME, tempResults[i][Initilization.RSSTitle]);
+            values.put(Initilization.DISPLAYORDER, "0");
+            values.put(Initilization.RSSTITLE, tempResults[i][Initilization.RSSTitle]);
+            values.put(Initilization.RSSURL_DB, tempResults[i][Initilization.RSSURL]);
+            values.put(Initilization.RSSURLID, tempResults[i][Initilization.RSSUrlId]);
+            values.put(Initilization.NEWSID, tempResults[i][Initilization.NewsId]);
+            values.put(Initilization.NEWSTITLE, tempResults[i][Initilization.NewsTitle]);
+            values.put(Initilization.SUMMARY, tempResults[i][Initilization.Summary]);
+            values.put(Initilization.NEWSIMAGE, tempResults[i][Initilization.NewsImage]);
+            values.put(Initilization.NEWSDATE, tempResults[i][Initilization.NewsDate]);
+            values.put(Initilization.NEWSDISPLAYORDER, tempResults[i][Initilization.NewsDisplayOrder]);
+            values.put(Initilization.CATEGORYORNEWS, tempResults[i][Initilization.CategoryorNews]);
+            values.put(Initilization.FULLTEXT, tempResults[i][Initilization.FullText]);
+            values.put(Initilization.NEWSURL, tempResults[i][Initilization.NewsUrl]);
+            values.put(Initilization.RESERVED_4, tempResults[i][Initilization.HTMLDesc]);
+
+            if (Initilization.resultArray[i][Initilization.CategoryId].compareTo("2") != 0)
+                values.put(Initilization.RESERVED_2, tempResults[i][Initilization.NewsId]);
+            else
+                values.put(Initilization.RESERVED_2, "SOMERANDOMTEXT" + tempResults[i][Initilization.NewsId]);
+
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                Date date = sdf.parse(tempResults[i][Initilization.NewsDate].replace("T", " ").replace("+5:30", ""));
+                long timeInMillisSinceEpoch = date.getTime();
+                Random r = new Random();
+                int i1 = r.nextInt(1000);
+                long timeInSecondsSinceEpoch = (timeInMillisSinceEpoch / (60)) + i1;
+                values.put(Initilization.RESERVED_3, timeInSecondsSinceEpoch);
+            } catch (ParseException e) {
+                values.put(Initilization.RESERVED_3, 0);
+            }
+            db.insert(Initilization.TABLE_NAME, null, values);
+        }
+        db.close();
+    }
+
+    public ArrayList<ItemObject> parseResults(String response) {
+        ArrayList <ItemObject> resultArray=new ArrayList<>();
+        String NewsImage="",NewsTitle="",RSSTitle="",NewsId="",CategoryId="",FullText="",NewsUrl="",NewsSummary="",NewsDate="",HTMLDesc="";
+        for (int i = 0; i < 1000; i++) {
+            for (int j = 0; j < 15; j++) {
+                tempResults[i][j] = "NULL";
             }
         }
-        return (items);
+        org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
+        for (int i = 0; i < 16; i++) {
+            if (i == Initilization.CategoryId) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {
+                    tempResults[index][Initilization.CategoryId] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.Category) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSTitle")) {
+                    tempResults[index][Initilization.Category] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.DisplayOrder) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("DisplayOrder")) {
+                    tempResults[index][Initilization.DisplayOrder] = "0";
+                    index++;
+                }
+            }
+            if (i == Initilization.RSSTitle) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSTitle")) {
+                    tempResults[index][Initilization.RSSTitle] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.RSSURL) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSURL")) {
+                    tempResults[index][Initilization.RSSURL] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.RSSUrlId) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {
+                    tempResults[index][Initilization.RSSUrlId] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.NewsId) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsId")) {
+                    tempResults[index][Initilization.NewsId] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.NewsTitle) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsTitle")) {
+                    tempResults[index][Initilization.NewsTitle] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.Summary) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("Summary")) {
+                    tempResults[index][Initilization.Summary] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.NewsImage) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsImage")) {
+                    tempResults[index][Initilization.NewsImage] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.NewsDate) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDate")) {
+                    tempResults[index][Initilization.NewsDate] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.NewsDisplayOrder) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDisplayOrder")) {
+                    tempResults[index][Initilization.NewsDisplayOrder] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.CategoryorNews) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryorNews")) {
+                    tempResults[index][Initilization.CategoryorNews] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.FullText) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("FullText")) {
+                    tempResults[index][Initilization.FullText] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.NewsUrl) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsUrl")) {
+                    tempResults[index][Initilization.NewsUrl] = e.text();
+                    index++;
+                }
+            }
+            if (i == Initilization.HTMLDesc) {
+                int index = 0;
+                for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
+                    tempResults[index][Initilization.HTMLDesc] = e.text();
+                    index++;
+                }
+            }
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            if (tempResults[i][Initilization.RSSUrlId].contains("NULL") || tempResults[i][Initilization.NewsId].contains("NULL")) {
+                continue;
+            }
+            NewsImage = tempResults[i][Initilization.NewsImage];
+            NewsTitle = tempResults[i][Initilization.NewsTitle];
+            RSSTitle = tempResults[i][Initilization.RSSTitle];
+            NewsId = tempResults[i][Initilization.NewsId];
+            CategoryId = tempResults[i][Initilization.CategoryId];
+            FullText = tempResults[i][Initilization.FullText];
+            NewsUrl = tempResults[i][Initilization.NewsUrl];
+            NewsSummary = tempResults[i][Initilization.Summary];
+            NewsDate = tempResults[i][Initilization.NewsDate];
+            HTMLDesc = tempResults[i][Initilization.HTMLDesc];
+            resultArray.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl, NewsSummary, NewsDate, HTMLDesc));
+        }
+        return (resultArray);
     }
 
     public List<ItemObject> parseResultsEmpty()

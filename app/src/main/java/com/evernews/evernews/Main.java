@@ -4,14 +4,13 @@ package com.evernews.evernews;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -64,7 +63,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class Main extends AppCompatActivity implements SignUp.OnFragmentInteractionListener,PostArticle.OnFragmentInteractionListener {
     /**
@@ -134,7 +135,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     public void onFragmentInteraction(Uri uri){
         //you can leave it empty
     }
-    private boolean initialTabs(){
+    public boolean  initialTabs(){
         int offset=0;
         try {
             for (int i = 0; i < Initilization.addOnList.size(); i++) {
@@ -214,33 +215,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             mViewPager.setPageTransformer(true, new CubeOutTransformer());
         if(animationCode.compareTo("Accordion")==0)
             mViewPager.setPageTransformer(true, new AccordionTransformer());
-        //if(animationCode.compareTo("BackgroundToForeground")==0)
-            //mViewPager.setPageTransformer(true, new BackgroundToForegroundTransformer());
-        //if(animationCode.compareTo("CubeIn")==0)
-            //mViewPager.setPageTransformer(true, new CubeInTransformer());
-        //if(animationCode.compareTo("DepthPage")==0)
-            //mViewPager.setPageTransformer(true, new DepthPageTransformer());
-        //if(animationCode.compareTo("FlipHorizontal")==0)
-            //mViewPager.setPageTransformer(true, new FlipHorizontalTransformer());
-        //if(animationCode.compareTo("FlipVertical")==0)
-           // mViewPager.setPageTransformer(true, new FlipVerticalTransformer());
-        ////if(animationCode.compareTo("ForegroundToBackground")==0)
-            //mViewPager.setPageTransformer(true, new ForegroundToBackgroundTransformer());
         if(animationCode.compareTo("RotateDown")==0)
             mViewPager.setPageTransformer(true, new RotateDownTransformer());
-        //if(animationCode.compareTo("RotateUp")==0)
-            //mViewPager.setPageTransformer(true, new RotateUpTransformer());
-        //if(animationCode.compareTo("ScaleInOut")==0)
-            //mViewPager.setPageTransformer(true, new ScaleInOutTransformer());
-        //if(animationCode.compareTo("Stack")==0)
-            //mViewPager.setPageTransformer(true, new StackTransformer());
         if(animationCode.compareTo("Tablet")==0)
             if(animationCode.compareTo("Tablet")==0)
                 mViewPager.setPageTransformer(true, new TabletTransformer());
-        //if(animationCode.compareTo("ZoomIn")==0)
-            //mViewPager.setPageTransformer(true, new ZoomInTransformer());
-        //if(animationCode.compareTo("ZoomOutSlide")==0)
-           // mViewPager.setPageTransformer(true, new ZoomOutSlideTransformer());
         if(animationCode.compareTo("ZoomOut")==0)
             mViewPager.setPageTransformer(true, new ZoomOutTranformer());
         /**END**/
@@ -285,8 +264,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             cancelAlarm(viewGroup);
 
         if(sharedpreferences.getBoolean(NEWCHANNELADDED,false)) {
-            Toast.makeText(context,"Channel change detected...Updating data please wait as changes are applied...",Toast.LENGTH_LONG).show();
-            new GetNewsTaskRestart().execute();
+            Snackbar snackbar = Snackbar.make(viewGroup, "Channel Updated.", Snackbar.LENGTH_LONG);
+            snackbar.show();
+            TabAdderWithoutRefresh();
         }
 
         /**RESTORE BRIGHTNESS**/
@@ -298,14 +278,153 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             getWindow().setAttributes(layoutParams); // Set params
         }
         /**END**/
-
+        setAnimation();
         /**Track Application**/
         AnalyticsApplication application_new = (AnalyticsApplication) getApplication();
         mTracker = application_new.getDefaultTracker();
         mTracker.setScreenName("In Main Screen");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+
+        /**Reset Long Clicker**/
+        ResetOnLongClickListener();
     }
 
+    void ResetOnLongClickListener(){
+        tabStrip = (LinearLayout) tabLayout.getChildAt(0);
+        int tabPos=tabLayout.getSelectedTabPosition();
+        tabStrip.getChildAt(tabPos).setBackgroundResource(R.drawable.tab_color1);
+
+        for (int i = 0; i < tabStrip.getChildCount(); i++) {
+            final int x = i;
+            tabStrip.getChildAt(i).setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(final View v) {
+                    if (x > mandetTab) {
+                        //final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(Uri.parse("https://developers.facebook.com")).build();
+                        AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
+                        builderSingle.setIcon(R.drawable.ic_launcher);
+                        builderSingle.setTitle("Remove Tab");
+                        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
+                        arrayAdapter.add("Remove " + Initilization.addOnList.get(x));
+                        builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        builderSingle.setAdapter(
+                                arrayAdapter,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        switch (which) {
+                                            case 0: {
+                                                new AsyncTask<Void, Integer, String>() {
+                                                    String RSSUID = "";
+                                                    String JsoupResopnse = "";
+                                                    int ExceptionCode = 0;       //sucess;
+                                                    ProgressDialog progressdlg;
+
+                                                    @Override
+                                                    protected void onProgressUpdate(Integer... text) {
+                                                        if (text[0] == 1)
+                                                            progressdlg.setMessage("Removing channel");
+                                                    }
+
+                                                    @Override
+                                                    protected void onPreExecute() {
+                                                        Main.progress.setVisibility(View.VISIBLE);
+                                                        progressdlg = new ProgressDialog(context);
+                                                        progressdlg.setMessage("Connecting to server...");
+                                                        progressdlg.setTitle("Removing channel");
+                                                        progressdlg.setCancelable(false);
+                                                        progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                                                        progressdlg.setIndeterminate(true);
+                                                        progressdlg.show();
+                                                    }
+
+                                                    @Override
+                                                    protected String doInBackground(Void... params) {
+                                                        try {
+                                                            RSSUID = Initilization.getAddOnListRSSID.get(x);
+                                                            String RSSNAME = Initilization.addOnList.get(x);
+                                                            publishProgress(1);
+                                                            Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+                                                            String xmlUrl = "http://rssapi.psweb.in/everapi.asmx/RemoveNewsTAB?RSSID=" + RSSUID.replace(" ", "") + "&AndroidId=" + Initilization.androidId;
+                                                            JsoupResopnse = Jsoup.connect(xmlUrl).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
+                                                            int iIndex = JsoupResopnse.indexOf("\">") + 2;
+                                                            int eIndex = JsoupResopnse.indexOf("</");
+                                                            char jChar[] = JsoupResopnse.toCharArray();
+                                                            if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex)
+                                                                JsoupResopnse = JsoupResopnse.copyValueOf(jChar, iIndex, (eIndex - iIndex));
+                                                            int JsoupResp = -99;
+                                                            try {
+                                                                JsoupResp = Integer.valueOf(JsoupResopnse);
+                                                            } catch (NumberFormatException e) {
+                                                            }
+                                                            if (JsoupResp <= 0) {
+                                                                ExceptionCode = 2;//Add failure but not connection
+                                                            }
+                                                        } catch (IOException e) {
+                                                            ExceptionCode = 1;    //failure
+                                                        }
+                                                        return null;
+                                                    }
+
+                                                    @Override
+                                                    protected void onPostExecute(String link) {
+                                                        progressdlg.dismiss();
+                                                        progress.setVisibility(View.GONE);
+                                                        int deleteNum = 0;
+                                                        if (ExceptionCode == 0) {
+                                                            SharedPreferences.Editor editor = sharedpreferences.edit();
+                                                            editor.putBoolean(Main.NEWCHANNELADDED, true);
+                                                            editor.apply();
+                                                            {
+                                                                String path = Initilization.DB_PATH + Initilization.DB_NAME;
+                                                                db = SQLiteDatabase.openDatabase(path, null, 0);
+                                                                try {
+                                                                    deleteNum = db.delete(Initilization.TABLE_NAME, Initilization.RSSURLID + " = " + RSSUID, null);
+                                                                } catch (Exception e) {
+                                                                    /****/
+                                                                }
+                                                                db.close();
+                                                            }
+
+
+                                                            Snackbar snackbar = Snackbar.make(v, "News removed successfully...updates are being changed...(" + deleteNum + " records were removed)", Snackbar.LENGTH_LONG);
+                                                            progress.setVisibility(View.GONE);
+                                                            snackbar.show();
+
+                                                            new CountDownTimer(2000, 1000) {
+                                                                public void onTick(long millisUntilFinished) {
+                                                                }
+                                                                public void onFinish() {
+                                                                    TabAdderWithoutRefresh();
+                                                                }
+                                                            }.start();
+
+                                                        } else {
+                                                            Snackbar snackbar = Snackbar.make(v, "Sorry news could not be removed... (Error Code : " + RSSUID + " )(" + deleteNum + " records were removed)", Snackbar.LENGTH_LONG);
+                                                            snackbar.show();
+                                                            progress.setVisibility(View.GONE);
+                                                        }
+                                                    }
+                                                }.execute();
+                                            }
+                                            break;
+                                        }
+                                    }
+                                });
+                        builderSingle.show();
+                    }
+                    return false;
+                }
+            });
+        }
+    }
     private PendingIntent pendingIntent1,pendingIntent2,pendingIntent3;
     private AlarmManager managerM,managerN,managerE;
     public Date convertStr2Date(String dateString){
@@ -511,147 +630,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
             }
         });
-        tabStrip = (LinearLayout) tabLayout.getChildAt(0);
-        int tabPos=tabLayout.getSelectedTabPosition();
-        tabStrip.getChildAt(tabPos).setBackgroundResource(R.drawable.tab_color1);
-
-            for (int i = 0; i < tabStrip.getChildCount(); i++) {
-            final int x=i;
-            tabStrip.getChildAt(i).setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(final View v) {
-                    if (x > mandetTab) {
-                        //final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(Uri.parse("https://developers.facebook.com")).build();
-                        AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
-                        builderSingle.setIcon(R.drawable.ic_launcher);
-                        builderSingle.setTitle("Remove Tab");
-                        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
-                        arrayAdapter.add("Remove " +Initilization.addOnList.get(x));
-                        builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-
-                        builderSingle.setAdapter(
-                                arrayAdapter,
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        switch (which) {
-                                            case 0: {
-                                                new AsyncTask<Void, Integer, String>() {
-                                                    String RSSUID="";
-                                                    String JsoupResopnse="";
-                                                    int ExceptionCode = 0;       //sucess;
-                                                    ProgressDialog progressdlg;
-                                                    @Override
-                                                    protected void onProgressUpdate(Integer... text) {
-                                                        if(text[0]==1)
-                                                            progressdlg.setMessage("Removing channel");
-                                                    }
-
-                                                    @Override
-                                                    protected void onPreExecute() {
-                                                        Main.progress.setVisibility(View.VISIBLE);
-                                                        progressdlg = new ProgressDialog(context);
-                                                        progressdlg.setMessage("Connecting to server...");
-                                                        progressdlg.setTitle("Removing channel");
-                                                        progressdlg.setCancelable(false);
-                                                        progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                                                        progressdlg.setIndeterminate(true);
-                                                        progressdlg.show();
-                                                    }
-                                                    @Override
-                                                    protected String doInBackground(Void... params) {
-                                                        try {
-                                                            RSSUID=Initilization.getAddOnListRSSID.get(x);
-                                                            String RSSNAME=Initilization.addOnList.get(x);
-                                                            publishProgress(1);
-                                                            Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                                                            String xmlUrl = "http://rssapi.psweb.in/everapi.asmx/RemoveNewsTAB?RSSID="+RSSUID.replace(" ","")+"&AndroidId="+Initilization.androidId;
-                                                            JsoupResopnse= Jsoup.connect(xmlUrl).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
-                                                            int iIndex = JsoupResopnse.indexOf("\">") + 2;
-                                                            int eIndex = JsoupResopnse.indexOf("</");
-                                                            char jChar[] = JsoupResopnse.toCharArray();
-                                                            if (iIndex >= 0 && eIndex >= 0 && eIndex > iIndex)
-                                                                JsoupResopnse = JsoupResopnse.copyValueOf(jChar, iIndex, (eIndex - iIndex));
-                                                            int JsoupResp=-99;
-                                                            try{
-                                                                JsoupResp=Integer.valueOf(JsoupResopnse);
-                                                            }catch (NumberFormatException e){}
-                                                            if(JsoupResp<=0){
-                                                                ExceptionCode=2;//Add failure but not connection
-                                                            }
-                                                        }
-                                                        catch (IOException e) {
-                                                            ExceptionCode=1;    //failure
-                                                        }
-                                                        return null;
-                                                    }
-                                                    @Override
-                                                    protected void onPostExecute(String link) {
-                                                        progressdlg.dismiss();
-                                                        progress.setVisibility(View.GONE);
-                                                        int deleteNum=0;
-                                                        if(ExceptionCode==0) {
-                                                            SharedPreferences.Editor editor = sharedpreferences.edit();
-                                                            editor.putBoolean(Main.NEWCHANNELADDED, true);
-                                                            editor.apply();
-                                                            {
-                                                                String path = Initilization.DB_PATH + Initilization.DB_NAME;
-                                                                db = SQLiteDatabase.openDatabase(path, null, 0);
-                                                                try {
-                                                                    deleteNum = db.delete(Initilization.TABLE_NAME, Initilization.RSSURLID + " = " + RSSUID, null);
-                                                                }catch (Exception e){
-                                                                    /****/
-                                                                }
-                                                                db.close();
-                                                            }
-                                                            Snackbar snackbar = Snackbar.make(v, "News removed successfully...updates are being changed...("+deleteNum+" records were removed)", Snackbar.LENGTH_LONG);
-                                                            progress.setVisibility(View.GONE);
-                                                            snackbar.show();
-
-                                                            new GetNewsTaskRestart().execute();
-
-                                                            /*final ProgressDialog progressdlg = new ProgressDialog(context);
-                                                            progressdlg.setMessage("Updating Application");
-                                                            progressdlg.setTitle("Updating contents,Please Wait...");
-                                                            progressdlg.setCancelable(false);
-                                                            progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                                                            progressdlg.setIndeterminate(true);
-                                                            progressdlg.show();
-                                                            new CountDownTimer(1000, 1000) {
-
-                                                                public void onTick(long millisUntilFinished) {
-                                                                }
-
-                                                                public void onFinish() {
-                                                                    new GetNewsTaskRestart().execute();
-                                                                    progressdlg.dismiss();
-                                                                }
-                                                            }.start();*/
-
-                                                        }
-                                                        else{
-                                                            Snackbar snackbar = Snackbar.make(v, "Sorry news could not be removed... (Error Code : "+RSSUID+" )("+deleteNum+" records were removed)", Snackbar.LENGTH_LONG);
-                                                            snackbar.show();
-                                                            progress.setVisibility(View.GONE);
-                                                        }
-                                                    }
-                                                }.execute();
-                                            }
-                                                break;
-                                        }
-                                    }
-                                });
-                        builderSingle.show();
-                    }
-                    return false;
-                }
-            });
-        }
     }
 
     @Override
@@ -708,10 +686,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 return true;
 
             case R.id.action_refresh:
-                //Toast.makeText(context,"Refresh in background has started...",Toast.LENGTH_SHORT).show();
-                Snackbar snackbar = Snackbar.make(viewGroup, "Refresh in background has started...", Snackbar.LENGTH_LONG);
+                Snackbar snackbar = Snackbar.make(viewGroup, "This feature is disabled", Snackbar.LENGTH_LONG);
                 snackbar.show();
-                new GetNewsTaskRestart().execute();
+                //new GetNewsTaskRestart().execute();
                 return true;
 
             case R.id.action_add:
@@ -774,7 +751,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         //return SignUp.newInstance("SignUpInstance");
                     }
                 }
-                ////fragArray[position] = ReusableFragment.newInstanceRe(position, Initilization.newsCategories[position][1]);
                 fragArray[position] = ReusableFragment.newInstanceRe(position, Initilization.addOnList.get(position));
                 return fragArray[position];
             }
@@ -783,14 +759,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
         @Override
         public int getCount() {
-            //Initilization.newsCategoryLength=15;
-            //return Initilization.newsCategoryLength;
             return Initilization.addOnList.size();
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            //return(Initilization.newsCategories[position][1]);
             return (Initilization.addOnList.get(position));
         }
     }
@@ -879,8 +852,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     }
 
 
-    //Non reuse lol
-    class GetNewsTask extends AsyncTask<Void,Void,Void>
+    class GetNewsTaskNoRestart extends AsyncTask<Void,Void,Void>
     {
         String content;
         int ExceptionCode=0;
@@ -919,36 +891,19 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            parseResults(content);
             progress.setVisibility(View.GONE);
             if (ExceptionCode > 0) {
                 if (ExceptionCode == 1)
-                    Toast.makeText(getApplicationContext(), "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
                 if (ExceptionCode == 2)
-                    Toast.makeText(getApplicationContext(), "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+                if(ExceptionCode ==3)
+                    Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
             }
             if (content != null) {
-                String result = content.toString().replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
-                parseResults(result);
-
-                final ProgressDialog progressdlg = new ProgressDialog(context);
-                progressdlg.setMessage("Updating Application");
-                progressdlg.setTitle("Updating contents,Please Wait...");
-                progressdlg.setCancelable(false);
-                progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                progressdlg.setIndeterminate(true);
-                progressdlg.show();
-                new CountDownTimer(1000, 1000) {
-                    public void onTick(long millisUntilFinished) {
-                    }
-
-                    public void onFinish() {
-                        /*Intent i = context.getPackageManager().getLaunchIntentForPackage( context.getPackageName() );
-                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(i);*/
-                        recreate();
-                        return;
-                    }
-                }.start();
+                //parseResults(content);
+                new DeleteRecords().execute();
                 //super.onPostExecute(aVoid);
             }
         }
@@ -1026,7 +981,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         Initilization.resultArrayLength=0;
         ContentValues values = new ContentValues();
         String path=Initilization.DB_PATH+Initilization.DB_NAME;
-        db=SQLiteDatabase.openDatabase(path,null,0);
+        SQLiteDatabase db=SQLiteDatabase.openDatabase(path,null,0);
         /**Clear off resultArray**/
         for(int i=0;i<10000;i++){
             for(int j=0;j<15;j++){
@@ -1035,10 +990,12 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
         /**END**/
         /**Clear adOnList and etc**/
+        mSectionsPagerAdapter.notifyDataSetChanged();
         Initilization.addOnList.clear();
         Initilization.addOnListTOCompare.clear();
         Initilization.getAddOnListRSSID.clear();
         for (int i = 0; i < 20; i++) {
+            mSectionsPagerAdapter.notifyDataSetChanged();
             Initilization.addOnList.add("");
             Initilization.addOnListTOCompare.add("");
             Initilization.getAddOnListRSSID.add("");
@@ -1163,6 +1120,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
         }
 
+
         for (int i = 0; i < 10000; i++) {
             if(Initilization.resultArray[i][Initilization.CategoryId].contains("NULL")||Initilization.resultArray[i][Initilization.NewsId].contains("NULL")||Initilization.resultArray[i][Initilization.FullText].contains("NULL")){
                 continue;
@@ -1212,11 +1170,13 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 cuDispOrder = Integer.parseInt(currentNewsCategory);
                 if (Initilization.resultArray[i][Initilization.Category].compareTo("YouView") != 0) {
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
+                        mSectionsPagerAdapter.notifyDataSetChanged();
                         Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                         Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
                         Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                     }
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
+                        mSectionsPagerAdapter.notifyDataSetChanged();
                         Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
                         Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
                         Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
@@ -1227,13 +1187,17 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
         db.close(); // Closing database connection
 
+        mSectionsPagerAdapter.notifyDataSetChanged();
         Initilization.addOnList.add(2, "EverYou");
         Initilization.addOnList.add(3, "YouView");
         Initilization.getAddOnListRSSID.add(2, "NULL");
         Initilization.getAddOnListRSSID.add(3, "NULL");
         Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
+        mSectionsPagerAdapter.notifyDataSetChanged();
         Initilization.addOnList.removeAll(Arrays.asList(null, ""));
         Initilization.addOnListTOCompare.clear();
+        mSectionsPagerAdapter.notifyDataSetChanged();
+        initialTabs();
     }
 
 
@@ -1529,5 +1493,108 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }catch (Exception e){
             validCategory=false;
         }
+    }
+
+
+    public void TabAdderWithoutRefresh()
+    {
+        Main.progress.setVisibility(View.VISIBLE);
+        /**Keep my house**/
+        Initilization.resultArrayLength = 0;
+        ArrayList<String> addOnList = new ArrayList <String>(10);
+        /**END**/
+        /**Clear off resultArray**/
+        for (int i = 0; i < 10000; i++) {
+            for (int j = 0; j < 15; j++) {
+                Initilization.resultArray[i][j] = "NULL";
+            }
+        }
+        /**END**/
+        String path = Initilization.DB_PATH + Initilization.DB_NAME;
+        db = SQLiteDatabase.openDatabase(path, null, 0);
+        Cursor cur = db.query(Initilization.TABLE_NAME, Initilization.col, null, null, null, null, Initilization.RESERVED_3+" DESC");
+        Integer num = cur.getCount();
+        setTitle(Integer.toString(num));
+        addOnList.clear();
+        Initilization.addOnListTOCompare.clear();
+        Initilization.getAddOnListRSSID.clear();
+        for (int i = 0; i < 20; i++) {
+            addOnList.add("");
+            Initilization.addOnListTOCompare.add("");
+            Initilization.getAddOnListRSSID.add("");
+        }
+
+        String currentNewsCategory = "";
+        cur.moveToFirst();
+        /**END**/
+        for (int i = 0; i < num; i++) {
+            Initilization.resultArray[i][Initilization.CategoryId] = cur.getString(Initilization.CategoryId);//lets get data to database
+            Initilization.resultArray[i][Initilization.Category] = cur.getString(Initilization.Category);
+            Initilization.resultArray[i][Initilization.DisplayOrder] = cur.getString(Initilization.DisplayOrder);
+            Initilization.resultArray[i][Initilization.RSSTitle] = cur.getString(Initilization.RSSTitle);
+            Initilization.resultArray[i][Initilization.RSSURL] = cur.getString(Initilization.RSSURL);
+            Initilization.resultArray[i][Initilization.RSSUrlId] = cur.getString(Initilization.RSSUrlId);
+            Initilization.resultArray[i][Initilization.NewsId] = cur.getString(Initilization.NewsId);
+            Initilization.resultArray[i][Initilization.NewsTitle] = cur.getString(Initilization.NewsTitle);
+            Initilization.resultArray[i][Initilization.Summary] = cur.getString(Initilization.Summary);
+            Initilization.resultArray[i][Initilization.NewsImage] = cur.getString(Initilization.NewsImage);
+            Initilization.resultArray[i][Initilization.NewsDate] = cur.getString(Initilization.NewsDate);
+            Initilization.resultArray[i][Initilization.NewsDisplayOrder] = cur.getString(Initilization.NewsDisplayOrder);
+            Initilization.resultArray[i][Initilization.CategoryorNews] = cur.getString(Initilization.CategoryorNews);
+            Initilization.resultArray[i][Initilization.FullText] = cur.getString(Initilization.FullText);
+            Initilization.resultArray[i][Initilization.NewsUrl] = cur.getString(Initilization.NewsUrl);
+            Initilization.resultArray[i][Initilization.HTMLDesc] = cur.getString(17);           //dont cange 17
+            currentNewsCategory = Initilization.resultArray[i][Initilization.DisplayOrder];
+
+            int cuDispOrder = 0;
+            try {
+                Initilization.resultArrayLength++;
+                cuDispOrder = Integer.parseInt(currentNewsCategory);
+                if(Initilization.resultArray[i][Initilization.Category].compareTo("YouView")!=0) {
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
+                        addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
+                    }
+                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
+                        addOnList.add(Initilization.resultArray[i][Initilization.Category]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
+                    }
+                }
+                try {
+                    cur.moveToNext();
+                } catch (Exception e) {/*Index out of bounds*/}
+            } catch (Exception ee) {/****/}
+        }
+        db.close(); // Closing database connection
+
+        Set<String> hs = new LinkedHashSet<>();
+        hs.addAll(addOnList);
+        addOnList.clear();
+        addOnList.addAll(hs);
+        addOnList.add(2, "EverYou");
+        addOnList.add(3, "YouView");
+        Initilization.getAddOnListRSSID.add(2, "NULL");
+        Initilization.getAddOnListRSSID.add(3,"NULL");
+        Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
+        addOnList.removeAll(Arrays.asList(null, ""));
+        Initilization.addOnListTOCompare.clear();
+        Initilization.addOnList.clear();
+        try {
+            mSectionsPagerAdapter.notifyDataSetChanged();
+        }catch (Exception e){/**ON PURPOSE**/}
+        Initilization.addOnList.addAll(addOnList);
+        try {
+            mSectionsPagerAdapter.notifyDataSetChanged();
+        }catch (Exception e){/**ON PURPOSE**/}
+
+        initialTabs();
+
+        SharedPreferences.Editor editor=sharedpreferences.edit();
+        editor.putBoolean(Main.NEWCHANNELADDED, false);
+        editor.apply();
+        ResetOnLongClickListener();
+        Main.progress.setVisibility(View.GONE);
     }
 }
