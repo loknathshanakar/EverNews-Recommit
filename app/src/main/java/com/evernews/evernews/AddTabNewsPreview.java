@@ -157,7 +157,7 @@ public class AddTabNewsPreview extends DialogFragment {
                         progressdlg.setCancelable(false);
                         progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                         progressdlg.setIndeterminate(true);
-                        progressdlg.show();
+                        //progressdlg.show();
                     }
                     @Override
                     protected String doInBackground(Void... params) {
@@ -173,12 +173,13 @@ public class AddTabNewsPreview extends DialogFragment {
                         catch (IOException e) {
                             ExceptionCode=1;    //failure
                         }
+                        ExceptionCode=0;
                         return null;
                     }
                     @Override
                     protected void onPostExecute(String link) {
                         progressdlg.dismiss();
-                        if(ExceptionCode==0) {
+                        if(ExceptionCode==0 && newsReady) {
                             SharedPreferences.Editor editor = sharedpreferences.edit();
                             editor.putBoolean(Main.NEWCHANNELADDED, true);
                             editor.apply();

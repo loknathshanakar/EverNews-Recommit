@@ -299,12 +299,12 @@ public class Initilization extends AppCompatActivity {
                 if(Initilization.resultArray[i][Initilization.Category].compareTo("YouView")!=0) {
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
                         Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                     }
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                         Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
                     }
                 }
@@ -382,12 +382,12 @@ public class Initilization extends AppCompatActivity {
                 if(Initilization.resultArray[i][Initilization.Category].compareTo("YouView")!=0) {
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
                         Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
                     }
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                         Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
                     }
                 }
@@ -411,6 +411,51 @@ public class Initilization extends AppCompatActivity {
         Initilization.addOnList.removeAll(Arrays.asList(null, ""));
         Initilization.addOnListTOCompare.clear();
     }
+
+
+    public void RefillVariablesFromDatabase()
+    {
+        /**Keep my house**/
+        Initilization.resultArrayLength = 0;
+        /**END**/
+        /**Clear off resultArray**/
+        for (int i = 0; i < 10000; i++) {
+            for (int j = 0; j < 15; j++) {
+                Initilization.resultArray[i][j] = "NULL";
+            }
+        }
+        /**END**/
+        String path = DB_PATH + DB_NAME;
+        db = SQLiteDatabase.openDatabase(path, null, 0);
+        Cursor cur = db.query(TABLE_NAME, Initilization.col, null, null, null, null, RESERVED_3+" DESC");
+        Integer num = cur.getCount();
+        cur.moveToFirst();
+        /**END**/
+        for (int i = 0; i < num; i++) {
+            Initilization.resultArrayLength++;
+            Initilization.resultArray[i][Initilization.CategoryId] = cur.getString(CategoryId);//lets get data to database
+            Initilization.resultArray[i][Initilization.Category] = cur.getString(Category);
+            Initilization.resultArray[i][Initilization.DisplayOrder] = cur.getString(DisplayOrder);
+            Initilization.resultArray[i][Initilization.RSSTitle] = cur.getString(RSSTitle);
+            Initilization.resultArray[i][Initilization.RSSURL] = cur.getString(RSSURL);
+            Initilization.resultArray[i][Initilization.RSSUrlId] = cur.getString(RSSUrlId);
+            Initilization.resultArray[i][Initilization.NewsId] = cur.getString(NewsId);
+            Initilization.resultArray[i][Initilization.NewsTitle] = cur.getString(NewsTitle);
+            Initilization.resultArray[i][Initilization.Summary] = cur.getString(Summary);
+            Initilization.resultArray[i][Initilization.NewsImage] = cur.getString(NewsImage);
+            Initilization.resultArray[i][Initilization.NewsDate] = cur.getString(NewsDate);
+            Initilization.resultArray[i][Initilization.NewsDisplayOrder] = cur.getString(NewsDisplayOrder);
+            Initilization.resultArray[i][Initilization.CategoryorNews] = cur.getString(CategoryorNews);
+            Initilization.resultArray[i][Initilization.FullText] = cur.getString(FullText);
+            Initilization.resultArray[i][Initilization.NewsUrl] = cur.getString(NewsUrl);
+            Initilization.resultArray[i][Initilization.HTMLDesc] = cur.getString(17);   //dont cange 17
+                try {
+                    cur.moveToNext();
+                } catch (Exception e) {/*Index out of bounds*/}
+        }
+        db.close(); // Closing database connection
+    }
+
 
     class GetNewsTask extends AsyncTask<Void, Integer, Void> {
         int goCode = 0;

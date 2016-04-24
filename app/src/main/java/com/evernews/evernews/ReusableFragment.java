@@ -64,7 +64,7 @@ public class ReusableFragment extends Fragment {
     ShareDialog shareDialog;
     String newsTitle;
     String newsLink;
-    CustomAdapter customAdapter;
+    public static  CustomAdapter customAdapter;
     Context context;
     Button btn;
     List<ItemObject> itemCollection = new ArrayList<>();
@@ -74,7 +74,7 @@ public class ReusableFragment extends Fragment {
     public ReusableFragment() {
     }
 
-    public static ReusableFragment newInstanceRe(int sectionNumber,String tabName) {
+    public static ReusableFragment newInstanceRe(String sectionNumber,String tabName) {
         Bundle args = new Bundle();
         args.putSerializable(TYPE_KEY, sectionNumber);
         args.putSerializable(TAB_NAME, tabName);
@@ -100,22 +100,7 @@ public class ReusableFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        ArrayList  <String>defaultTabs=new ArrayList<>();
-        defaultTabs.add("Top News");
-        defaultTabs.add("Biz");
-        defaultTabs.add("Tech");
-        defaultTabs.add("India");
-        defaultTabs.add("World");
-        defaultTabs.add("Entertainment");
-        defaultTabs.add("Politics");
-        defaultTabs.add("LifeStyle");
-        defaultTabs.add("Sports");
         String tabName=getArguments().getString(TAB_NAME);
-        if(defaultTabs.contains(tabName))
-            passKey=false;
-        else
-            passKey=true;
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         gridView = (GridView)rootView.findViewById(R.id.gridview);
         // progressBar=(ProgressBar)rootView.findViewById(R.id.progress_frag);
@@ -128,14 +113,13 @@ public class ReusableFragment extends Fragment {
                 new GetNewsTask().execute();
             }
         });
-        //btn=(Button)getActivity().findViewById(R.id.loadmore);
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             gridView.setNumColumns(4);
         }
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             gridView.setNumColumns(2);
         }
-        List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
+        List<ItemObject> allItems = getDefaultNews();
         customAdapter = new CustomAdapter(context, itemCollection);
         itemCollection.addAll(0,allItems);
         //customAdapter.notifyDataSetChanged();
@@ -256,8 +240,7 @@ public class ReusableFragment extends Fragment {
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 if (firstVisibleItem + visibleItemCount >= totalItemCount) {
-                    int i=getArguments().getInt(TYPE_KEY);
-                        fab.setVisibility(View.VISIBLE);
+                    fab.setVisibility(View.VISIBLE);
                     fab.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -356,22 +339,15 @@ public class ReusableFragment extends Fragment {
         return rootView;
     }
 
-    private List<ItemObject> getDefaultNews(int ii){
+    private List<ItemObject> getDefaultNews(){
         List<ItemObject> items = new ArrayList<>();
         items.add(new ItemObject("", "", "", "", "","","","","",""));
-        ItemObject prevObj=new ItemObject("", "", "", "", "","","","","","");
         int i= getArguments().getInt(TYPE_KEY);
         String tabName=getArguments().getString(TAB_NAME);
         if(i==1)
             return items;
         if(i>=0) {
             for(int j=0;j<Initilization.resultArrayLength;j++){
-                /*int categoryId=-100;
-                try{
-                    categoryId=Integer.parseInt(Initilization.resultArray[j][Initilization.CategoryId]);
-                }catch (Exception e){e.printStackTrace();}
-                if(categoryId>1)
-                    categoryId= categoryId+2;*/
                     if (tabName.compareTo(Initilization.resultArray[j][Initilization.Category]) == 0) {
                         String NewsImage = Initilization.resultArray[j][Initilization.NewsImage];
                         String NewsTitle = Initilization.resultArray[j][Initilization.NewsTitle];
@@ -385,22 +361,6 @@ public class ReusableFragment extends Fragment {
                         String HTMLDesc = Initilization.resultArray[j][Initilization.HTMLDesc];
                         int xj=j;
                         items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,Summary,newsDate,HTMLDesc));
-                        /*if(!items.contains(prevObj)){
-                            items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl));
-                        }*/
-                        //prevObj=new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl);
-                       /* for(int x=0;x<items.size();x++) {
-                            if (items.get(x).getNewsID().compareTo(NewsId)==0) {
-                                break;
-                            }
-                            else{
-                                if(x==items.size()-1) {
-                                    items.add(new ItemObject(NewsImage, NewsTitle, RSSTitle, NewsId, CategoryId, FullText, NewsUrl,Summary));
-                                    break;
-                                }
-                                continue;
-                            }
-                        }*/
                         refrenceCounter++;
                         //Need to implement a filter to prevent re adding of data
                         for (int k = 0; k < itemCollection.size(); k++) {
@@ -415,152 +375,134 @@ public class ReusableFragment extends Fragment {
         hs.addAll(items);
         items.clear();
         items.addAll(hs);
-        items.remove(0);
+        if(items.size()>=1)
+            items.remove(0);
         return items;
     }
 
-    public void parseResultsMAIN(String response) {
+    public void parseResultsPerCategory(String response) {
         {
-            Initilization.resultArrayLength=0;
             ContentValues values = new ContentValues();
             String path = Initilization.DB_PATH + Initilization.DB_NAME;
             db = SQLiteDatabase.openDatabase(path, null, 0);
-            /**Clear off resultArray**/
-            for (int i = 0; i < 10000; i++) {
-                for (int j = 0; j < 15; j++) {
-                    Initilization.resultArray[i][j] = "NULL";
-                }
-            }
-            /**END**/
-            /**Clear adOnList and etc**/
-            //Initilization.addOnList.clear();
-            Initilization.addOnListTOCompare.clear();
-            Initilization.getAddOnListRSSID.clear();
-            for (int i = 0; i < 20; i++) {
-                //Initilization.addOnList.add("");
-                Initilization.addOnListTOCompare.add("");
-                Initilization.getAddOnListRSSID.add("");
-            }
-
-            String currentNewsCategory = "";
-            /**END**/
+            int beginIndex=Initilization.resultArrayLength;
             org.jsoup.nodes.Document jsoupDoc = Jsoup.parse(response, "", org.jsoup.parser.Parser.xmlParser());
             for (int i = 0; i < 16; i++) {
                 if (i == Initilization.CategoryId) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryId")) {
                         Initilization.resultArray[index][Initilization.CategoryId] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.Category) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("Category")) {
                         Initilization.resultArray[index][Initilization.Category] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.DisplayOrder) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("DisplayOrder")) {
                         Initilization.resultArray[index][Initilization.DisplayOrder] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.RSSTitle) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSTitle")) {
                         Initilization.resultArray[index][Initilization.RSSTitle] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.RSSURL) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSURL")) {
                         Initilization.resultArray[index][Initilization.RSSURL] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.RSSUrlId) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("RSSUrlId")) {
                         Initilization.resultArray[index][Initilization.RSSUrlId] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.NewsId) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsId")) {
                         Initilization.resultArray[index][Initilization.NewsId] = e.text();
+                        Initilization.resultArrayLength++;
                         index++;
                     }
                 }
                 if (i == Initilization.NewsTitle) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsTitle")) {
                         Initilization.resultArray[index][Initilization.NewsTitle] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.Summary) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("Summary")) {
                         Initilization.resultArray[index][Initilization.Summary] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.NewsImage) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsImage")) {
                         Initilization.resultArray[index][Initilization.NewsImage] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.NewsDate) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDate")) {
                         Initilization.resultArray[index][Initilization.NewsDate] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.NewsDisplayOrder) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsDisplayOrder")) {
                         Initilization.resultArray[index][Initilization.NewsDisplayOrder] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.CategoryorNews) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("CategoryorNews")) {
                         Initilization.resultArray[index][Initilization.CategoryorNews] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.FullText) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("FullText")) {
                         Initilization.resultArray[index][Initilization.FullText] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.NewsUrl) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("NewsUrl")) {
                         Initilization.resultArray[index][Initilization.NewsUrl] = e.text();
                         index++;
                     }
                 }
                 if (i == Initilization.HTMLDesc) {
-                    int index = 0;
+                    int index = beginIndex;
                     for (org.jsoup.nodes.Element e : jsoupDoc.select("HtmlDescription")) {
                         Initilization.resultArray[index][Initilization.HTMLDesc] = e.text();
                         index++;
                     }
                 }
             }
-
-            for (int i = 0; i < 10000; i++) {
+            for (int i = beginIndex; i < 10000; i++) {
                 if (Initilization.resultArray[i][Initilization.CategoryId].contains("NULL") || Initilization.resultArray[i][Initilization.NewsId].contains("NULL") || Initilization.resultArray[i][Initilization.FullText].contains("NULL")) {
                     continue;
                 }
@@ -596,36 +538,9 @@ public class ReusableFragment extends Fragment {
                 }catch(ParseException e){
                     values.put(Initilization.RESERVED_3,0);
                 }
-
-                int cuDispOrder = 0;
-
-                currentNewsCategory=Initilization.resultArray[i][Initilization.DisplayOrder];
-
                 db.insert(Initilization.TABLE_NAME, null, values);
-                try {
-                    Initilization.resultArrayLength++;
-                    cuDispOrder = Integer.parseInt(currentNewsCategory);
-                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
-                        //Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
-                        Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                    }
-                    if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
-                        //Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
-                        Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
-                    }
-                } catch (Exception ee) {/****/}
             }
             db.close(); // Closing database connection
-
-            //Initilization.addOnList.add(2, "EverYou");
-            //Initilization.addOnList.add(3, "YouView");
-            Initilization.getAddOnListRSSID.add(2, "NULL");
-            Initilization.getAddOnListRSSID.add(3, "NULL");
-            Initilization.getAddOnListRSSID.removeAll(Arrays.asList(null, ""));
-            Initilization.addOnList.removeAll(Arrays.asList(null, ""));
-            Initilization.addOnListTOCompare.clear();
         }
     }
 
@@ -819,10 +734,6 @@ public class ReusableFragment extends Fragment {
                     asyncitems.remove(asyncitems.size()-1);
                 }
             }
-            /*Set<ItemObject> remover = new LinkedHashSet<>();
-            remover.addAll(asyncitems);
-            asyncitems.clear();
-            asyncitems.addAll(remover);*/
         }
         db.close();
     }
@@ -909,7 +820,8 @@ public class ReusableFragment extends Fragment {
         protected Void doInBackground(Void... params) {
             try {
                 Initilization.androidId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                String fetchLink = "http://rssapi.psweb.in/everapi.asmx/LoadALLDefaultNews?AndroidId=" + Initilization.androidId;//Over ride but should be Main.androidId
+                String fetchLink = "http://rssapi.psweb.in/everapi.asmx/RefreshCategoryNews?CategoryId=" + getArguments().getString(TYPE_KEY);//Over ride but should be Main.androidId
+                Log.i("#fetchLink",fetchLink);
                 content = Jsoup.connect(fetchLink).ignoreContentType(true).timeout(Initilization.timeout).execute().body();
                 content=content.replace("\n","$$$$");
             } catch (Exception e) {
@@ -921,6 +833,7 @@ public class ReusableFragment extends Fragment {
                     ExceptionCode = 2;
                     return null;
                 }
+                ExceptionCode=3;
                 e.printStackTrace();
             }
             return null;
@@ -938,13 +851,15 @@ public class ReusableFragment extends Fragment {
                     Toast.makeText(context, "Please check your internet connection and try again", Toast.LENGTH_SHORT).show();
                 if (ExceptionCode == 2)
                     Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(context, "Some server related issue occurred..please try again later", Toast.LENGTH_SHORT).show();
             }
             if (content != null) {
                 String result = content.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
 
-                parseResultsMAIN(result);
+                parseResultsPerCategory(result);
 
-                List<ItemObject> allItems = getDefaultNews(getArguments().getInt(TYPE_KEY));
+                List<ItemObject> allItems = getDefaultNews();
                 //if(itemCollection.get(0).getnewsName().isEmpty())
                 /**CAUTION HERE**/
                 if(itemCollection!=null) {

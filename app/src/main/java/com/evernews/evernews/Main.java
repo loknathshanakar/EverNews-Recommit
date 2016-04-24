@@ -293,14 +293,26 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
     void ResetOnLongClickListener(){
         tabStrip = (LinearLayout) tabLayout.getChildAt(0);
         int tabPos=tabLayout.getSelectedTabPosition();
-        tabStrip.getChildAt(tabPos).setBackgroundResource(R.drawable.tab_color1);
+        //tabStrip.getChildAt(tabPos).setBackgroundResource(R.drawable.tab_color1);
 
         for (int i = 0; i < tabStrip.getChildCount(); i++) {
             final int x = i;
+            final ArrayList  <String>defaultTabs=new ArrayList<>();
+            defaultTabs.add("Top News");
+            defaultTabs.add("YouView");
+            defaultTabs.add("EverYou");
+            defaultTabs.add("Biz");
+            defaultTabs.add("Tech");
+            defaultTabs.add("India");
+            defaultTabs.add("World");
+            defaultTabs.add("Entertainment");
+            defaultTabs.add("Politics");
+            defaultTabs.add("LifeStyle");
+            defaultTabs.add("Sports");
             tabStrip.getChildAt(i).setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(final View v) {
-                    if (x > mandetTab) {
+                    if (!defaultTabs.contains(Initilization.addOnList.get(x))) {
                         //final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(Uri.parse("https://developers.facebook.com")).build();
                         AlertDialog.Builder builderSingle = new AlertDialog.Builder(context);
                         builderSingle.setIcon(R.drawable.ic_launcher);
@@ -342,7 +354,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                         progressdlg.setCancelable(false);
                                                         progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                                                         progressdlg.setIndeterminate(true);
-                                                        progressdlg.show();
+                                                        //progressdlg.show();
                                                     }
 
                                                     @Override
@@ -370,6 +382,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                         } catch (IOException e) {
                                                             ExceptionCode = 1;    //failure
                                                         }
+                                                        ExceptionCode=0;
                                                         return null;
                                                     }
 
@@ -387,6 +400,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                                 db = SQLiteDatabase.openDatabase(path, null, 0);
                                                                 try {
                                                                     deleteNum = db.delete(Initilization.TABLE_NAME, Initilization.RSSURLID + " = " + RSSUID, null);
+                                                                    db.delete(Initilization.TABLE_NAME, Initilization.RSSURLID + " = " + RSSUID, null);
                                                                 } catch (Exception e) {
                                                                     /****/
                                                                 }
@@ -397,14 +411,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                                                             Snackbar snackbar = Snackbar.make(v, "News removed successfully...updates are being changed...(" + deleteNum + " records were removed)", Snackbar.LENGTH_LONG);
                                                             progress.setVisibility(View.GONE);
                                                             snackbar.show();
-
-                                                            new CountDownTimer(2000, 1000) {
-                                                                public void onTick(long millisUntilFinished) {
-                                                                }
-                                                                public void onFinish() {
-                                                                    TabAdderWithoutRefresh();
-                                                                }
-                                                            }.start();
+                                                            TabAdderWithoutRefresh();
 
                                                         } else {
                                                             Snackbar snackbar = Snackbar.make(v, "Sorry news could not be removed... (Error Code : " + RSSUID + " )(" + deleteNum + " records were removed)", Snackbar.LENGTH_LONG);
@@ -686,9 +693,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 return true;
 
             case R.id.action_refresh:
-                Snackbar snackbar = Snackbar.make(viewGroup, "This feature is disabled", Snackbar.LENGTH_LONG);
+                Snackbar snackbar = Snackbar.make(viewGroup, "Refresh has started in  background...", Snackbar.LENGTH_LONG);
                 snackbar.show();
-                //new GetNewsTaskRestart().execute();
+                new GetNewsTaskRestart().execute();
                 return true;
 
             case R.id.action_add:
@@ -739,7 +746,6 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
         @Override
         public Fragment getItem(int position) {
-            //args.putInt(ARG_SECTION_NUMBER, position);
             ReusableFragment fragArray[]=new ReusableFragment[100];
             if(position<Initilization.addOnList.size()) {
                 if (position == 1) {
@@ -748,10 +754,9 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     }
                     else if(sharedpreferences.getBoolean(LOGGEDIN,false)){
                         return PostArticle.newInstance("PostArticle","PostArticle_2");
-                        //return SignUp.newInstance("SignUpInstance");
                     }
                 }
-                fragArray[position] = ReusableFragment.newInstanceRe(position, Initilization.addOnList.get(position));
+                fragArray[position] = ReusableFragment.newInstanceRe(Initilization.getAddOnListRSSID.get(position), Initilization.addOnList.get(position));
                 return fragArray[position];
             }
             return null;
@@ -820,31 +825,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
             }
             if (content != null) {
                 parseResultsRefresh(content);
-                final ProgressDialog progressdlg = new ProgressDialog(context);
-                progressdlg.setMessage("Updating Application");
-                progressdlg.setTitle("Updating contents,Please Wait...");
-                progressdlg.setCancelable(false);
-                progressdlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                progressdlg.setIndeterminate(true);
-                progressdlg.show();
-                new CountDownTimer(1000, 1000) {
-
-                    public void onTick(long millisUntilFinished) {
-                    }
-
-                    public void onFinish() {
-                        //recreate();
-                        SharedPreferences.Editor editor = sharedpreferences.edit();
-                        editor.putBoolean(Main.NEWCHANNELADDED, false);
-                        editor.apply();
-                        progressdlg.dismiss();//Safer here
-                        Intent i=new Intent(Main.this,Initilization.class);
-                        finish();
-                        startActivity(i);
-                        return;
-                    }
-                }.start();
-
+                Initilization i=new Initilization();
+                i.RefillVariablesFromDatabase();
+                try {
+                    ReusableFragment.customAdapter.notifyDataSetChanged();
+                }catch (Exception e){/**Attempt**/}
                 new DeleteRecords().execute();
                 //super.onPostExecute(aVoid);
             }
@@ -909,7 +894,7 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         }
     }
 
-    public static class DeleteRecords extends AsyncTask<String, String, String> {
+     class DeleteRecords extends AsyncTask<String, String, String> {
         SQLiteDatabase db ;
         String content="";
         int ExceptionCode=0;
@@ -943,11 +928,11 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 String removables="";
                 try {
                     removables  = content.substring(content.indexOf("<Column1>") + 9, content.indexOf("</Column1>"));
-                    Log.d("newsIDS_removables", removables+"");
+                    //Log.d("newsIDS_removables", removables+"");
                     String[] newsIDS = removables.split(",");
                     for(int i=0;i<newsIDS.length;i++) {
                         newsIDSList.add(newsIDS[i]);
-                        Log.d("newsIDS", newsIDS[i]+"");
+                        //Log.d("newsIDS", newsIDS[i]+"");
                     }
                 } catch (Exception e) {
                     //Means invalid data from server
@@ -959,12 +944,12 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                         t = db.delete(Initilization.TABLE_NAME, Initilization.NEWSID + " = " +"'"+ newsIDSList.get(i)+"'", null);
 
                     }catch (Exception e){
-                        Log.d("delete_que_error",e.toString()+"");
+                        //Log.d("delete_que_error",e.toString()+"");
                     }
                     deletNum=t+deletNum;
 
                 }
-                Log.d("delete_querry",deletNum+"");
+                //Log.d("delete_query",deletNum+"");
                 //Toast.makeText(context,"Records deleted " + deletNum,Toast.LENGTH_LONG).show();
             }
             db.close();
@@ -1172,13 +1157,13 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
                         mSectionsPagerAdapter.notifyDataSetChanged();
                         Initilization.addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
                     }
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                         mSectionsPagerAdapter.notifyDataSetChanged();
                         Initilization.addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
                     }
                 }
@@ -1334,6 +1319,8 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         for (int i = 0; i < 10000; i++) {
             if(Initilization.resultArray[i][Initilization.CategoryId].contains("NULL")||Initilization.resultArray[i][Initilization.NewsId].contains("NULL")||Initilization.resultArray[i][Initilization.FullText].contains("NULL")){
                 continue;
+            }else{
+                Initilization.resultArrayLength++;
             }
             values.put(Initilization.CATEGORYID,Initilization.resultArray[i][Initilization.CategoryId]);
             values.put(Initilization.CATEGORYNAME,Initilization.resultArray[i][Initilization.Category]);
@@ -1553,12 +1540,12 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
                 if(Initilization.resultArray[i][Initilization.Category].compareTo("YouView")!=0) {
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.Category]) && cuDispOrder != 0) {
                         addOnList.set(cuDispOrder, Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.set(cuDispOrder, Initilization.resultArray[i][Initilization.CategoryId]);
                     }
                     if (!Initilization.addOnListTOCompare.contains(Initilization.resultArray[i][Initilization.CategoryId]) && cuDispOrder == 0) {
                         addOnList.add(Initilization.resultArray[i][Initilization.Category]);
-                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.RSSUrlId]);
+                        Initilization.getAddOnListRSSID.add(Initilization.resultArray[i][Initilization.CategoryId]);
                         Initilization.addOnListTOCompare.add(Initilization.resultArray[i][Initilization.CategoryId]);
                     }
                 }
@@ -1582,19 +1569,30 @@ public class Main extends AppCompatActivity implements SignUp.OnFragmentInteract
         Initilization.addOnListTOCompare.clear();
         Initilization.addOnList.clear();
         try {
-            mSectionsPagerAdapter.notifyDataSetChanged();
+            //mSectionsPagerAdapter.notifyDataSetChanged();
         }catch (Exception e){/**ON PURPOSE**/}
         Initilization.addOnList.addAll(addOnList);
         try {
             mSectionsPagerAdapter.notifyDataSetChanged();
-        }catch (Exception e){/**ON PURPOSE**/}
+        }catch (Exception e){
+            int x=0;
+            int y=0;
+            int z=0;
+        }
 
         initialTabs();
 
         SharedPreferences.Editor editor=sharedpreferences.edit();
         editor.putBoolean(Main.NEWCHANNELADDED, false);
         editor.apply();
-        ResetOnLongClickListener();
+        new CountDownTimer(2000,500){
+            public void onTick(long millisUntilFinished) {
+            }
+            @Override
+            public void onFinish() {
+                ResetOnLongClickListener();
+            }
+        }.start();
         Main.progress.setVisibility(View.GONE);
     }
 }

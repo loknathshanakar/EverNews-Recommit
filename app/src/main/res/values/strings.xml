@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">EverNews</string>
-    <string name="app_with_version">EverNews v0.0336</string>
+    <string name="app_with_version">EverNews v0.0337</string>
     <string name="title_activity_view_news">ViewNews</string>
     <string name="share_using">Share Using</string>
     <!-- TODO: Remove or change this placeholder text -->
